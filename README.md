@@ -17,7 +17,7 @@ The companion package is an Expo module and does not require a companion Expo co
 - Peer package: `bitmovin-player-react-native@^1.21.0`
 - Expo crypto peer: `expo-crypto@>=14.0.0` (used for generated internal Google DAI adapter IDs)
 - Android native DAI artifact: `com.bitmovin.player.integration:google-dai:0.1.0-alpha.1`
-- Android Bitmovin Player artifact: pinned to the same `com.bitmovin.player:player` version as the core package.
+- Android Bitmovin Player artifacts: transitive runtime pins for `com.bitmovin.player:player` and `com.bitmovin.player:player-media-session` at `3.159.0+jason` to satisfy the alpha DAI adapter.
 - iOS Bitmovin Player pod: pinned to the same `BitmovinPlayer` version as the core `RNBitmovinPlayer` pod; the iOS Google DAI pod/API is still unconfirmed.
 - Android repository:
 

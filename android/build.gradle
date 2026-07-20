@@ -44,7 +44,7 @@ buildscript {
 android {
   namespace 'com.bitmovin.player.reactnative.googledai'
 
-  compileSdkVersion safeExtGet('compileSdkVersion', 35)
+  compileSdkVersion safeExtGet('compileSdkVersion', 36)
 
   defaultConfig {
     minSdkVersion safeExtGet('minSdkVersion', 24)
@@ -91,9 +91,13 @@ if (bitmovinPlayerReactNativeProject == null) {
   )
 }
 
+def bitmovinPlayerSdkVersion = '3.159.0+jason'
+
 dependencies {
   compileOnly bitmovinPlayerReactNativeProject
-  compileOnly("com.bitmovin.player:player:3.159.0+jason")
 
+  // Keep the native Player SDK runtime aligned with the alpha Google DAI adapter.
+  implementation("com.bitmovin.player:player:$bitmovinPlayerSdkVersion")
+  implementation("com.bitmovin.player:player-media-session:$bitmovinPlayerSdkVersion")
   implementation("com.bitmovin.player.integration:google-dai:0.1.0-alpha.1")
 }

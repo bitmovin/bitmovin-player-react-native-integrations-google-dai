@@ -37,7 +37,7 @@ const config: ExpoConfig = {
       {
         android: {
           minSdkVersion: 24,
-          compileSdkVersion: 35,
+          compileSdkVersion: 36,
           targetSdkVersion: 35,
         },
         ios: {
