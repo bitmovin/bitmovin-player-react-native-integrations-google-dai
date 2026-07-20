@@ -165,6 +165,19 @@ For Android runtime smoke tests, Google publishes test DAI streams using network
 
 Google's API-key-protected Big Buck Bunny sample uses asset key `XYrjlG09QTa8pxAo5Fzjww` with test API key `8B1DA006064BD04C5CD474456AB8C9BDA790628E3184E95074EC65E308331EBC`.
 
+## Example app
+
+This repository includes a minimal Expo dev-client sample under [`example/`](example/) that installs this package via `file:..`, configures the core `bitmovin-player-react-native` plugin with `BITMOVIN_PLAYER_LICENSE_KEY`, and loads Google's public live DAI HLS test stream.
+
+```sh
+cd example
+yarn install
+cp .env.example .env
+# edit .env and set BITMOVIN_PLAYER_LICENSE_KEY
+yarn prebuild
+yarn android
+```
+
 ## Lifecycle and limitations
 
 - `withGoogleDai(player)` validates that `player.nativeId` is a non-empty string and that the native `GoogleDaiModule` is available.

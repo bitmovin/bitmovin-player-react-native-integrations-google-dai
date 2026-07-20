@@ -1,0 +1,44 @@
+{
+  "name": "bitmovin-player-react-native-google-dai-example",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "prebuild": "expo prebuild",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "lint": "eslint . --ext .ts,.tsx --quiet",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bitmovin/player-react-native-google-dai": "file:..",
+    "bitmovin-player-react-native": "^1.21.0",
+    "expo": "~54.0.35",
+    "expo-build-properties": "~1.0.10",
+    "expo-crypto": "~15.0.9",
+    "expo-dev-client": "~6.0.21",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@expo/config-types": "^54.0.10",
+    "@types/react": "~19.1.10",
+    "dotenv": "^17.2.0",
+    "eslint": "^8.57.0",
+    "eslint-config-expo": "~10.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.5.1",
+    "typescript": "~5.9.2"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "bitmovin-player-react-native"
+        ]
+      }
+    }
+  }
+}

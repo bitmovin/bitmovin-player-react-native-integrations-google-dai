@@ -10,7 +10,14 @@
     "lint": "eslint --quiet src --ext .ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prepare": "expo-module prepare",
-    "prepublishOnly": "node scripts/prepublish-only.js && expo-module prepublishOnly"
+    "prepublishOnly": "node scripts/prepublish-only.js && expo-module prepublishOnly",
+    "example:install": "yarn --cwd example install",
+    "example:start": "yarn --cwd example start",
+    "example:prebuild": "yarn --cwd example prebuild",
+    "example:android": "yarn --cwd example android",
+    "example:ios": "yarn --cwd example ios",
+    "example:lint": "yarn --cwd example lint",
+    "example:typecheck": "yarn --cwd example typecheck"
   },
   "keywords": [
     "react-native",
