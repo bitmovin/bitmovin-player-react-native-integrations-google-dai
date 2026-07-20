@@ -31,12 +31,16 @@
     "access": "public"
   },
   "files": [
+    "android/build.gradle",
+    "android/gradle.properties",
+    "android/src",
     "build",
     "expo-module.config.json",
+    "ios/GoogleDaiModule.swift",
+    "ios/RNBitmovinPlayerGoogleDai.podspec",
     "src",
     "README.md"
   ],
-  "dependencies": {},
   "peerDependencies": {
     "bitmovin-player-react-native": "^1.22.0",
     "expo": ">=54.0.0",
