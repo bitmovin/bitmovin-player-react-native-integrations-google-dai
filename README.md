@@ -18,7 +18,7 @@ The companion package is an Expo module and does not require a companion Expo co
 - Expo crypto peer: `expo-crypto@>=14.0.0` (used for generated internal Google DAI adapter IDs)
 - Android native DAI artifact: `com.bitmovin.player.integration:google-dai:0.1.0-alpha.1`
 - Android Bitmovin Player artifacts: transitive runtime pins for `com.bitmovin.player:player` and `com.bitmovin.player:player-media-session` at `3.159.0+jason` to satisfy the alpha DAI adapter.
-- iOS Bitmovin Player pod: pinned to the same `BitmovinPlayer` version as the core `RNBitmovinPlayer` pod; the iOS Google DAI pod/API is still unconfirmed.
+- iOS: placeholder Expo module only; no Bitmovin Player or Google DAI native pods are linked until the iOS DAI SDK contract is confirmed.
 - Android repository:
 
 ```kotlin
@@ -30,30 +30,6 @@ repositories {
 ```
 
 Native DAI artifacts are pinned by this package and are intentionally not consumer-overridable in the MVP.
-
-### Confirmed Android native contract
-
-The Android bridge is implemented against the alpha artifact listed above. The confirmed API surface used by this package is:
-
-- extension property: `com.bitmovin.player.integration.googledai.api.googleDai` on `Player`;
-- adapter interface: `GoogleDai` with `load(GoogleDaiSourceConfig)`;
-- live source config: `GoogleDaiSourceConfig.Live(assetKey, type, apiKey, networkCode, adTagParameters)`;
-- native Android source type enum values: `GoogleDaiSourceType.Dash` and `GoogleDaiSourceType.Hls` (the companion JavaScript API exposes `GoogleDaiSourceType.DASH` and `GoogleDaiSourceType.HLS`).
-
-The alpha Android adapter has no public `destroy()` method on the `GoogleDai` interface. The React Native bridge removes all of its registries/listeners when the native player or Expo module is destroyed and performs a best-effort native adapter cleanup if the implementation exposes a no-argument `destroy` method.
-
-### Android runtime compatibility status
-
-The companion is aligned with the core Android Player SDK version `3.159.0+jason`, which is expected to satisfy the alpha Google DAI artifact's `AdvertisingApi.getViewGroup()` requirement.
-
-Previous validation against Android Player SDK `3.155.1+jason` failed with:
-
-```txt
-NoSuchMethodError: No interface method getViewGroup()Landroid/view/ViewGroup;
-in class Lcom/bitmovin/player/api/advertising/AdvertisingApi;
-```
-
-The Android bridge keeps a native compatibility preflight for `AdvertisingApi.getViewGroup()` before native adapter initialization/load and surfaces any mismatch as a `Google DAI native dependency compatibility error`. Runtime DAI playback validation still needs to be rerun with `3.159.0+jason` on a device or emulator.
 
 ## Usage
 
@@ -141,30 +117,6 @@ export interface GoogleDaiLiveSourceConfig {
 
 The MVP supports live DAI streams only. VOD support is intentionally rejected until the native source-config contract is added.
 
-### Public runtime validation samples
-
-For Android runtime smoke tests, Google publishes test DAI streams using network code `21775744923`:
-
-```ts
-// Big Buck Bunny live HLS
-{
-  kind: 'live',
-  assetKey: 'c-rArva4ShKVIAkNfy6HUQ',
-  networkCode: '21775744923',
-  type: GoogleDaiSourceType.HLS,
-}
-
-// Tears of Steel live DASH
-{
-  kind: 'live',
-  assetKey: 'PSzZMzAkSXCmlJOWDmRj8Q',
-  networkCode: '21775744923',
-  type: GoogleDaiSourceType.DASH,
-}
-```
-
-Google's API-key-protected Big Buck Bunny sample uses asset key `XYrjlG09QTa8pxAo5Fzjww` with test API key `8B1DA006064BD04C5CD474456AB8C9BDA790628E3184E95074EC65E308331EBC`.
-
 ## Example app
 
 This repository includes a minimal Expo dev-client sample under [`example/`](example/) that installs this package via `file:..`, configures the core `bitmovin-player-react-native` plugin with `BITMOVIN_PLAYER_LICENSE_KEY`, and loads Google's public live DAI HLS test stream.
@@ -178,24 +130,9 @@ yarn prebuild
 yarn android
 ```
 
-## Lifecycle and limitations
-
-- `withGoogleDai(player)` validates that `player.nativeId` is a non-empty string and that the native `GoogleDaiModule` is available.
-- `withGoogleDai(player)` throws if the player already defines a conflicting `googleDai` property.
-- The attached `player.googleDai` property is read-only, non-enumerable, and stored internally under a private symbol without modifying `Player.prototype`.
-- `player.googleDai.load()` requires an already initialized, non-destroyed `Player`.
-- Mount `PlayerView` or explicitly `await player.initialize()` before calling `player.googleDai.load(...)`.
-- Google DAI needs the player's ad UI container; mount/attach `PlayerView` before loading DAI.
-- If `load()` is called without a mounted `PlayerView`, the native SDK may surface a fatal player error through existing `onPlayerError` events.
-- Only one active `GoogleDai` instance is allowed per `Player`.
-- `withGoogleDai(player)` does not override, monkey-patch, or require changes to `player.destroy()`.
-- Native bridges subscribe to the native player destroy event and release companion ownership when the player is destroyed.
-- Existing player ad/error events are reused; the MVP adds no DAI-specific JS events.
-- The existing hard Google IMA dependency in the core package is out of scope for this companion package.
-
 ## iOS status
 
-The iOS Expo module currently validates lifecycle/source-config errors, tracks one active placeholder integration per player, unregisters on player/module destroy, and rejects `load()` with a clear `IOS_GOOGLE_DAI_NOT_IMPLEMENTED` error. The following iOS SDK-owner confirmations are still required before public release:
+The iOS Expo module is intentionally a minimal placeholder so Apple builds can autolink this companion without pulling in unconfirmed native DAI dependencies. `initialize()` and `load()` reject with `IOS_GOOGLE_DAI_NOT_IMPLEMENTED`; `destroy()` is a no-op. The following iOS SDK-owner confirmations are still required before public release:
 
 - pod name and module import;
 - supported platforms;
@@ -214,24 +151,18 @@ yarn lint:google-dai
 yarn typecheck:google-dai
 ```
 
-Native/package validation is manual for now. For Android, generate `example/android` and `example/node_modules`, open the committed `Google IMA DAI` example screen, verify Expo autolinking, build the example app, and confirm Gradle resolves `com.bitmovin.player.integration:google-dai:0.1.0-alpha.1`. For runtime validation, launch that example screen on a device/emulator and confirm `player.googleDai.load(liveConfig)` reaches playback/ad events.
+Native/package validation is manual for now:
 
-For iOS, validate the placeholder module with SwiftLint/Xcode or CocoaPods as available, and confirm Apple autolinking resolves `RNBitmovinPlayerGoogleDai` when the companion is installed.
+- Android: build and run the example app on a device/emulator and confirm playback/ad events.
+- iOS: confirm the placeholder autolinks and builds without Bitmovin Player or Google DAI native pods.
 
-The companion package has a guarded `prepublishOnly` script and is blocked from publishing by default. Set `BITMOVIN_GOOGLE_DAI_ALLOW_PUBLISH=1` only after the checklist below is complete.
+The companion package has a guarded `prepublishOnly` script and is blocked from publishing by default. Set `BITMOVIN_GOOGLE_DAI_ALLOW_PUBLISH=1` only after the remaining checks below are complete.
 
 Before publishing this companion package:
 
-- [ ] companion TypeScript build, lint, and typecheck pass;
 - [ ] companion Android native lint/build checks pass;
-- [ ] companion iOS native lint/build checks pass after the iOS DAI dependency is confirmed;
+- [ ] companion iOS placeholder lint/build checks pass without Bitmovin Player or Google DAI native pods;
 - [ ] a core-only fixture builds without autolinking `GoogleDaiModule`;
 - [ ] the core-only fixture has no Android `google-dai` artifact in its dependency tree;
-- [ ] a DAI-enabled fixture autolinks the companion package without a config plugin;
-- [ ] the DAI-enabled fixture resolves the pinned Android `google-dai` artifact;
-- [ ] the DAI-enabled fixture resolves the confirmed iOS DAI dependency;
-- [ ] `withGoogleDai(player)` attaches `player.googleDai` and initializes through the bridge;
-- [ ] `player.googleDai.load(liveConfig)` starts a DAI stream request and playback;
-- [ ] existing player ad/error events cover the DAI lifecycle and serialize SSAI ad objects;
 - [ ] duplicate, invalid-config, and destroyed-player error cases are covered;
 - [ ] release, package-maintenance, CI-fixture, and native-dependency-pin owners are assigned.
