@@ -25,6 +25,6 @@ The sample uses Google's public live DAI HLS test stream:
 - asset key: `c-rArva4ShKVIAkNfy6HUQ`
 - network code: `21775744923`
 
-Tap **Load Google DAI** after the `PlayerView` appears. Player and ad events are logged to Metro.
+Playback starts automatically after the `PlayerView` appears. Player and ad events are logged to Metro.
 
 > iOS currently initializes the placeholder module and rejects `load()` with `IOS_GOOGLE_DAI_NOT_IMPLEMENTED` until the native iOS DAI SDK contract is confirmed.
