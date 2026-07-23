@@ -1,0 +1,70 @@
+name: CI (TypeScript)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/ci-typescript.yml'
+      - '.github/actions/**'
+      - 'src/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'tsconfig.json'
+      - '.eslintrc.js'
+      - 'prettier.config.js'
+      - 'expo-module.config.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/ci-typescript.yml'
+      - '.github/actions/**'
+      - 'src/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'tsconfig.json'
+      - '.eslintrc.js'
+      - 'prettier.config.js'
+      - 'expo-module.config.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-typescript-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-style-typescript:
+    name: Code style
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+
+      - name: Lint TypeScript
+        run: yarn lint
+
+  build-typescript:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+
+      - name: Typecheck TypeScript
+        run: yarn typecheck
+
+      - name: Build TypeScript
+        run: yarn build
+
+      - name: Verify package contents
+        run: npm pack --dry-run --ignore-scripts --json
