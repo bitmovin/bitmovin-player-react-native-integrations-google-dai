@@ -23,7 +23,7 @@ The companion package is an Expo module and does not require a companion Expo co
 
 ## Compatibility
 
-- Peer package: `bitmovin-player-react-native@^1.21.0`
+- Peer package: `bitmovin-player-react-native@^1.22.0`
 - Android native DAI artifact: `com.bitmovin.player.integration:google-dai:0.1.0-alpha.1`
 - Minimum Android Bitmovin Player SDK version: `3.159.0+jason`.
 - iOS: placeholder Expo module only; no Bitmovin Player or Google DAI native pods are linked until the iOS DAI SDK contract is confirmed.
@@ -42,8 +42,7 @@ Native DAI artifacts are pinned by this package and are intentionally not consum
 ## Usage
 
 ```tsx
-import { useEffect, useMemo } from 'react';
-import { Button } from 'react-native';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Player, PlayerView } from 'bitmovin-player-react-native';
 import {
   GoogleDaiSourceType,
@@ -67,29 +66,29 @@ export function GoogleDaiPlayer() {
     return () => player.destroy();
   }, [player]);
 
+  const loadGoogleDai = useCallback(() => {
+    void player.googleDai
+      .load({
+        kind: 'live',
+        assetKey: '...',
+        type: GoogleDaiSourceType.HLS,
+        apiKey: '...',
+        networkCode: '...',
+        adTagParameters: {
+          cust_params: '...',
+        },
+      })
+      .then(() => player.play())
+      .catch((error) => console.warn('Google DAI load failed', error));
+  }, [player]);
+
   return (
-    <>
-      <PlayerView
-        player={player}
-        onPlayerError={(event) => console.warn(event)}
-        onAdStarted={(event) => console.warn('ad started', event)}
-      />
-      <Button
-        title="Load DAI"
-        onPress={() => {
-          void player.googleDai.load({
-            kind: 'live',
-            assetKey: '...',
-            type: GoogleDaiSourceType.HLS,
-            apiKey: '...',
-            networkCode: '...',
-            adTagParameters: {
-              cust_params: '...',
-            },
-          });
-        }}
-      />
-    </>
+    <PlayerView
+      player={player}
+      onPlayerViewReady={loadGoogleDai}
+      onPlayerError={(event) => console.warn(event)}
+      onAdStarted={(event) => console.warn('ad started', event)}
+    />
   );
 }
 ```
@@ -103,7 +102,7 @@ player.play();
 player.destroy();
 ```
 
-`withGoogleDai(player)` preserves the original player object identity, attaches a read-only non-enumerable `googleDai` property to that player instance, and returns `Player & GoogleDaiCapability`. It does not modify `Player.prototype`. Repeated calls with the same player return the same `GoogleDai` instance. `player.googleDai.load()` lazily creates the native DAI adapter for an already initialized player before loading the source config. It does not initialize the core `Player`.
+`withGoogleDai(player)` preserves the original player object identity, attaches a read-only non-enumerable `googleDai` property to that player instance, and returns `Player & GoogleDaiCapability`. It does not modify `Player.prototype`. Repeated calls with the same player return the same `GoogleDai` instance. `player.googleDai.load()` lazily creates the native DAI adapter before loading the source config. It does not initialize the core `Player`; mount `PlayerView` and call `load()` from `PlayerView.onPlayerViewReady` so the native view and ad UI container are attached.
 
 ### Source config
 

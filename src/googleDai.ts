@@ -133,7 +133,7 @@ class NativeGoogleDai implements GoogleDai {
     }
     if (!this.player.isInitialized) {
       throw new Error(
-        'GoogleDai requires an initialized Player. Mount PlayerView or await player.initialize() before loading DAI.'
+        'GoogleDai requires an initialized Player. Mount PlayerView and call load() from PlayerView.onPlayerViewReady.'
       );
     }
   }
