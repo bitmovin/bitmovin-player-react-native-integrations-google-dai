@@ -1,6 +1,6 @@
 {
   "name": "@bitmovin/player-react-native-google-dai",
-  "version": "1.22.0",
+  "version": "0.0.1",
   "description": "Optional Google IMA DAI companion package for Bitmovin Player React Native.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -10,6 +10,7 @@
     "lint": "eslint --quiet src --ext .ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prepare": "expo-module prepare",
+    "prepublishOnly": "expo-module prepublishOnly",
     "example:install": "yarn --cwd example install",
     "example:start": "yarn --cwd example start",
     "example:prebuild": "yarn --cwd example prebuild",
@@ -53,7 +54,7 @@
     "expo-modules-core": "~3.0.30"
   },
   "peerDependencies": {
-    "bitmovin-player-react-native": "^1.22.0",
+    "bitmovin-player-react-native": ">=1.22.0",
     "expo": ">=54.0.0",
     "expo-crypto": ">=14.0.0",
     "react": "*",

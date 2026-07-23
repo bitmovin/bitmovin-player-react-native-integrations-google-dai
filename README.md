@@ -23,7 +23,7 @@ The companion package is an Expo module and does not require a companion Expo co
 
 ## Compatibility
 
-- Peer package: `bitmovin-player-react-native@^1.22.0`
+- Peer package: `bitmovin-player-react-native@>=1.22.0`
 - Expo crypto peer: `expo-crypto@>=14.0.0` (used for generated Google DAI native IDs)
 - Android native DAI artifact: `com.bitmovin.player.integration:google-dai:0.1.0-alpha.1`
 - Minimum Android Bitmovin Player SDK version: `3.159.0+jason`.
