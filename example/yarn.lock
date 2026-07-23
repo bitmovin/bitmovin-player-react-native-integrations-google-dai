@@ -759,7 +759,7 @@
     "@babel/helper-validator-identifier" "^7.29.7"
 
 "@bitmovin/player-react-native-google-dai@file:..":
-  version "1.21.0"
+  version "1.22.0"
 
 "@emnapi/core@1.10.0":
   version "1.10.0"
@@ -2361,10 +2361,10 @@ big-integer@1.6.x:
   resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.52.tgz#60a887f3047614a8e1bffe5d7173490a97dc8c85"
   integrity sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==
 
-bitmovin-player-react-native@^1.21.0:
-  version "1.21.0"
-  resolved "https://registry.yarnpkg.com/bitmovin-player-react-native/-/bitmovin-player-react-native-1.21.0.tgz#ca89811e586fbb654be59a3c90c385f433a50d1b"
-  integrity sha512-auoQtfqTSEpcNENXUY6Xu/BUO4Dm6IWdyOuXTVAL7CfkTGA7mUBlAxrDUX+Hdyzr8jjbND94AynDQ6N5sTFs5Q==
+bitmovin-player-react-native@^1.22.0:
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/bitmovin-player-react-native/-/bitmovin-player-react-native-1.22.0.tgz#51dae33f9c0989092f1812cb92488fbd1f990b1e"
+  integrity sha512-mtEpgVrQj/A4taO4Pci0CoKe+tX3tjGp5Lab2pclPL51XqK7qug8nXe3W0gAhtQ1pPUTT/QtffjDWq96DsfBeg==
   dependencies:
     expo-crypto "~15.0.9"
     expo-keep-awake "~15.0.8"

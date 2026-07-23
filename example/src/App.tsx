@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Player, PlayerView, type Event } from 'bitmovin-player-react-native';
 import {
@@ -18,7 +18,6 @@ function logEvent(event: Event) {
 }
 
 export default function App() {
-  const playerViewRef = useRef(null);
   const didStartLoadRef = useRef(false);
 
   const player = useMemo(
@@ -36,42 +35,29 @@ export default function App() {
     []
   );
 
+  const startGoogleDai = useCallback(() => {
+    if (didStartLoadRef.current) {
+      return;
+    }
+    didStartLoadRef.current = true;
+    void player.googleDai
+      .load(liveDaiConfig)
+      .then(() => player.play())
+      .catch((error) => {
+        console.warn('[Google DAI Example] load failed', error);
+      });
+  }, [player]);
+
   useEffect(() => {
-    let retryHandle: ReturnType<typeof setTimeout> | undefined;
-
-    const startGoogleDai = () => {
-      if (didStartLoadRef.current) {
-        return;
-      }
-      if (playerViewRef.current == null) {
-        retryHandle = setTimeout(startGoogleDai, 100);
-        return;
-      }
-      didStartLoadRef.current = true;
-      void player.googleDai
-        .load(liveDaiConfig)
-        .then(() => player.play())
-        .catch((error) => {
-          console.warn('[Google DAI Example] load failed', error);
-        });
-    };
-
-    startGoogleDai();
-
-    return () => {
-      if (retryHandle) {
-        clearTimeout(retryHandle);
-      }
-      player.destroy();
-    };
+    return () => player.destroy();
   }, [player]);
 
   return (
     <View style={styles.container}>
       <PlayerView
         player={player}
-        viewRef={playerViewRef}
         style={styles.player}
+        onPlayerViewReady={startGoogleDai}
         onAdBreakFinished={logEvent}
         onAdBreakStarted={logEvent}
         onAdError={logEvent}
