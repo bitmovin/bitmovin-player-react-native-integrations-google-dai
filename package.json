@@ -1,0 +1,61 @@
+{
+  "name": "@bitmovin/player-react-native-google-dai",
+  "version": "1.22.0",
+  "description": "Optional Google IMA DAI companion package for Bitmovin Player React Native.",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "expo-module build",
+    "clean": "expo-module clean",
+    "lint": "eslint --quiet src --ext .ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepare": "expo-module prepare"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "bitmovin",
+    "player",
+    "google-dai",
+    "ima",
+    "ssai"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bitmovin/bitmovin-player-react-native-integrations-google-dai"
+  },
+  "author": "Bitmovin GmbH <player-sdks@bitmovin.com> (https://github.com/bitmovin)",
+  "license": "MIT",
+  "homepage": "https://github.com/bitmovin/bitmovin-player-react-native-integrations-google-dai#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "build",
+    "expo-module.config.json",
+    "src",
+    "README.md"
+  ],
+  "dependencies": {},
+  "peerDependencies": {
+    "bitmovin-player-react-native": "^1.22.0",
+    "expo": ">=54.0.0",
+    "react": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@types/react": "~19.1.10",
+    "eslint": "^8.57.0",
+    "eslint-config-expo": "~10.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.5.1",
+    "expo": "~54.0.35",
+    "expo-module-scripts": "^4.1.9",
+    "prettier": "^3.6.2",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "typescript": "~5.9.2"
+  },
+  "module": "expo-module"
+}
