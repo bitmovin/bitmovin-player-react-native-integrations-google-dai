@@ -1,6 +1,6 @@
 {
   "name": "@bitmovin/player-react-native-google-dai",
-  "version": "1.21.0",
+  "version": "1.22.0",
   "description": "Optional Google IMA DAI companion package for Bitmovin Player React Native.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -38,7 +38,7 @@
   ],
   "dependencies": {},
   "peerDependencies": {
-    "bitmovin-player-react-native": "^1.21.0",
+    "bitmovin-player-react-native": "^1.22.0",
     "expo": ">=54.0.0",
     "react": "*",
     "react-native": "*"
