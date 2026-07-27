@@ -1,3 +1,4 @@
+import * as Crypto from 'expo-crypto';
 import GoogleDaiModule, {
   assertGoogleDaiModuleAvailable,
 } from './modules/GoogleDaiModule';
@@ -17,8 +18,6 @@ export interface GoogleDaiCapability {
 const googleDaiInstanceSymbol: unique symbol = Symbol(
   'BitmovinPlayerReactNativeGoogleDai.instance'
 );
-
-let nextGoogleDaiNativeId = 0;
 
 type GoogleDaiPlayer = {
   readonly nativeId: string;
@@ -86,7 +85,7 @@ class NativeGoogleDai implements GoogleDai {
 
   constructor(player: GoogleDaiPlayer) {
     this.player = assertPlayer(player);
-    this.nativeId = `google-dai-${nextGoogleDaiNativeId++}`;
+    this.nativeId = createGoogleDaiNativeId();
   }
 
   load = async (sourceConfig: GoogleDaiSourceConfig): Promise<void> => {
@@ -137,6 +136,10 @@ class NativeGoogleDai implements GoogleDai {
       );
     }
   }
+}
+
+function createGoogleDaiNativeId(): string {
+  return `google-dai-${Crypto.randomUUID()}`;
 }
 
 function assertExistingGoogleDaiProperty(
