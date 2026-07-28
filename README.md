@@ -128,6 +128,19 @@ export interface GoogleDaiLiveSourceConfig {
 
 The MVP supports live DAI streams only. VOD support is intentionally rejected until the native source-config contract is added.
 
+## Example app
+
+This repository includes a minimal Expo dev-client sample under [`example/`](example/) that installs this package via `file:..`, configures the core `bitmovin-player-react-native` plugin with `BITMOVIN_PLAYER_LICENSE_KEY`, and loads Google's public live DAI HLS test stream.
+
+```sh
+cd example
+yarn install
+cp .env.example .env
+# edit .env and set BITMOVIN_PLAYER_LICENSE_KEY
+yarn prebuild
+yarn android
+```
+
 ## iOS status
 
 The iOS Expo module is intentionally a minimal placeholder so Apple builds can autolink this companion without pulling in unconfirmed native DAI dependencies. `initialize()` and `load()` reject with `IOS_GOOGLE_DAI_NOT_IMPLEMENTED`; `destroy()` is a no-op. The following iOS SDK-owner confirmations are still required before public release:
