@@ -1,0 +1,98 @@
+name: Start Release Train
+
+run-name: Start Release Train ${{ inputs.version_number }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_number:
+        description: 'Next version number of the release'
+        type: string
+        required: true
+      dry_run:
+        description: 'If true, the workflow will not create a PR'
+        type: boolean
+        required: false
+        default: false
+
+env:
+  LC_ALL: en_US.UTF-8
+  LANG: en_US.UTF-8
+
+concurrency:
+  group: start-release-train-${{ inputs.version_number }}
+  cancel-in-progress: true
+
+jobs:
+  create_release_pr:
+    name: Create release branch and bump version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      branch_name: ${{ steps.branching.outputs.branch_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Git User
+        run: |
+          git config --global user.name "Bitmovin Release Automation"
+          git config --global user.email "support@bitmovin.com"
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+
+      - name: Set Release Branch name
+        id: branching
+        run: |
+          branch_name="release/v${{ inputs.version_number }}"
+          echo "branch_name=$branch_name" >> "$GITHUB_OUTPUT"
+          echo "$branch_name"
+
+      - name: Create Release Branch
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git push origin --delete ${{ steps.branching.outputs.branch_name }} || true
+          git checkout -b ${{ steps.branching.outputs.branch_name }}
+
+      - name: Create changelog release section
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          version = "${{ inputs.version_number }}"
+          changelog = Path("CHANGELOG.md")
+          text = changelog.read_text()
+          marker = "## [Unreleased]"
+          if marker not in text:
+              raise SystemExit("CHANGELOG.md must contain an [Unreleased] section")
+          changelog.write_text(text.replace(marker, f"{marker}\n\n## [{version}]", 1))
+          PY
+          awk 'BEGIN {count=0} /## \[/ {count++; if (count == 3) exit} {print}' CHANGELOG.md
+
+      - name: Bump package.json version
+        run: npm version ${{ inputs.version_number }} --no-git-tag-version --allow-same-version
+
+      - name: Commit changelog and package version bump
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git add CHANGELOG.md package.json
+          git commit --no-verify -m "prepare release ${{ inputs.version_number }}"
+          git push origin ${{ steps.branching.outputs.branch_name }}
+
+      - name: Create PR and Request Review
+        if: ${{ !inputs.dry_run }}
+        run: |
+          PR_URL=$(gh pr create \
+            --base "main" \
+            --title "Release ${{ inputs.version_number }}" \
+            --body "Release ${{ inputs.version_number }}. Please review and merge this PR to continue the release process.")
+
+          echo "Created PR: $PR_URL"
+          PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+          gh pr edit "$PR_NUMBER" --add-reviewer "${{ github.actor }}" || true
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -1,0 +1,24 @@
+name: Setup project environment
+description: Setup the project environment
+
+inputs:
+  node:
+    description: Setup Node.js and install root node modules
+    default: false
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Setup node and npm registry
+      if: ${{ inputs.node == 'true' }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        registry-url: 'https://registry.npmjs.org/'
+        cache: 'yarn'
+
+    - name: Install node_modules
+      if: ${{ inputs.node == 'true' }}
+      shell: bash
+      run: yarn install --frozen-lockfile
