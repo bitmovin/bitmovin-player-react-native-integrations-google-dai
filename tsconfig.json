@@ -5,6 +5,12 @@
     "outDir": "./build",
     "rootDir": "./src"
   },
-  "include": ["./src", "./typings"],
-  "exclude": ["**/__mocks__/*", "**/__tests__/*", "**/__rsc_tests__/*"]
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "**/__mocks__/*",
+    "**/__tests__/*",
+    "**/__rsc_tests__/*"
+  ]
 }
