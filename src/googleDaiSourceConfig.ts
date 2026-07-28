@@ -1,4 +1,7 @@
 export enum GoogleDaiSourceType {
+  /**
+   * @platform Android
+   */
   DASH = 'dash',
   HLS = 'hls',
 }

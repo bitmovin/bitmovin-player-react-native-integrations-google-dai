@@ -109,6 +109,9 @@ player.destroy();
 
 ```ts
 export enum GoogleDaiSourceType {
+  /**
+   * @platform Android
+   */
   DASH = 'dash',
   HLS = 'hls',
 }
