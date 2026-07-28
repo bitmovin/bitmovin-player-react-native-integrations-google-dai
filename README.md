@@ -103,7 +103,7 @@ player.play();
 player.destroy();
 ```
 
-`withGoogleDai(player)` preserves the original player object identity, attaches a read-only non-enumerable `googleDai` property to that player instance, and returns `Player & GoogleDaiCapability`. It does not modify `Player.prototype`. Repeated calls with the same player return the same `GoogleDai` instance. `player.googleDai.load()` lazily creates the native DAI adapter before loading the source config. It does not initialize the core `Player`; mount `PlayerView` and call `load()` from `PlayerView.onPlayerViewReady` so the native view and ad UI container are attached.
+`withGoogleDai(player)` preserves the original player object identity, attaches a read-only non-enumerable `googleDai` property to that player instance, and returns `Player & GoogleDaiCapability`. It does not modify `Player.prototype`. Repeated calls with the same player return the same `GoogleDaiApi` instance. `player.googleDai.load()` lazily creates the native DAI adapter before loading the source config. It does not initialize the core `Player`; mount `PlayerView` and call `load()` from `PlayerView.onPlayerViewReady` so the native view and ad UI container are attached.
 
 ### Source config
 

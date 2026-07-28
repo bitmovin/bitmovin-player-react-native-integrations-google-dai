@@ -7,12 +7,12 @@ import {
   GoogleDaiSourceType,
 } from './googleDaiSourceConfig';
 
-export interface GoogleDai {
+export interface GoogleDaiApi {
   load(sourceConfig: GoogleDaiSourceConfig): Promise<void>;
 }
 
 export interface GoogleDaiCapability {
-  readonly googleDai: GoogleDai;
+  readonly googleDai: GoogleDaiApi;
 }
 
 const googleDaiInstanceSymbol: unique symbol = Symbol(
@@ -76,7 +76,7 @@ export function withGoogleDai<T extends GoogleDaiPlayer>(
 /**
  * Native-backed Google IMA DAI implementation for an existing Bitmovin Player.
  */
-class NativeGoogleDai implements GoogleDai {
+class NativeGoogleDai implements GoogleDaiApi {
   private readonly nativeId: string;
   private readonly player: GoogleDaiPlayer;
 
