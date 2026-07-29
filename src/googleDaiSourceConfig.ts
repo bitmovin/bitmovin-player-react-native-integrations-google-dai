@@ -14,5 +14,8 @@ export interface GoogleDaiLiveSourceConfig {
   type: GoogleDaiSourceType;
   apiKey?: string;
   networkCode?: string;
+  /**
+   * @platform Android
+   */
   adTagParameters?: Record<string, string>;
 }
