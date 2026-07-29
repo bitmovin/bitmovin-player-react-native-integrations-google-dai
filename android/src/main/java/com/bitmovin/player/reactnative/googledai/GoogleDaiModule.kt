@@ -1,45 +1,50 @@
 package com.bitmovin.player.reactnative.googledai
 
+import androidx.core.os.bundleOf
+import com.bitmovin.player.api.source.SourceConfig
+import com.bitmovin.player.api.source.SourceType
 import com.bitmovin.player.integration.googledai.api.GoogleDaiSourceConfig
 import com.bitmovin.player.integration.googledai.api.GoogleDaiSourceType
+import com.bitmovin.player.integration.googledai.api.SourceConfigFactoryContext
 import com.bitmovin.player.integration.googledai.api.googleDai
 import com.bitmovin.player.reactnative.NativeId
 import com.bitmovin.player.reactnative.PlayerRegistry
+import com.bitmovin.player.reactnative.ResultWaiter
+import com.bitmovin.player.reactnative.converter.toSourceConfig
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.concurrent.ConcurrentHashMap
 
+private const val SOURCE_CONFIG_FACTORY_TIMEOUT_MS = 250L
+private const val SOURCE_CONFIG_FACTORY_EVENT = "onSourceConfigFactoryRequest"
+
 class GoogleDaiModule : Module() {
     private val playerIdsByGoogleDaiId = ConcurrentHashMap<NativeId, NativeId>()
+    private val sourceConfigFactoryWaiter = ResultWaiter<Map<String, Any?>>()
 
     override fun definition() = ModuleDefinition {
         Name("GoogleDaiModule")
+        Events(SOURCE_CONFIG_FACTORY_EVENT)
 
         OnDestroy {
             playerIdsByGoogleDaiId.clear()
+            sourceConfigFactoryWaiter.clear()
         }
 
         AsyncFunction("initialize") { googleDaiId: NativeId, playerId: NativeId ->
             initialize(googleDaiId, playerId)
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("load") { googleDaiId: NativeId, sourceConfig: Map<String, Any?> ->
-            val validatedGoogleDaiId = googleDaiId.nonEmptyNativeId("googleDaiId")
-            val playerId = playerIdsByGoogleDaiId[validatedGoogleDaiId]
-                ?: throw GoogleDaiException.UnknownAdapter(validatedGoogleDaiId)
-            val player = PlayerRegistry.getPlayer(playerId)
-                ?: throw GoogleDaiException.PlayerUnavailable(playerId)
-            val nativeSourceConfig = sourceConfig.toGoogleDaiSourceConfig()
-            try {
-                player.googleDai.load(nativeSourceConfig)
-            } catch (error: GoogleDaiException) {
-                throw error
-            } catch (error: Exception) {
-                throw GoogleDaiException.NativeLoadFailed(error.message ?: "Unknown error")
-            }
+        AsyncFunction("load") { googleDaiId: NativeId, sourceConfig: Map<String, Any?>,
+            sourceConfigFactoryId: String?, ->
+            load(googleDaiId, sourceConfig, sourceConfigFactoryId)
         }.runOnQueue(Queues.MAIN)
+
+        AsyncFunction("setSourceConfigFactoryResult") { requestId: Int, sourceConfig: Map<String, Any?>? ->
+            sourceConfigFactoryWaiter.complete(requestId, sourceConfig ?: emptyMap())
+        }
 
         AsyncFunction("destroy") { googleDaiId: NativeId ->
             playerIdsByGoogleDaiId.remove(googleDaiId.nonEmptyNativeId("googleDaiId"))
@@ -61,6 +66,61 @@ class GoogleDaiModule : Module() {
             throw GoogleDaiException.PlayerUnavailable(validatedPlayerId)
         }
         playerIdsByGoogleDaiId[validatedGoogleDaiId] = validatedPlayerId
+    }
+
+    private fun load(
+        googleDaiId: NativeId,
+        sourceConfig: Map<String, Any?>,
+        sourceConfigFactoryId: String?,
+    ) {
+        val validatedGoogleDaiId = googleDaiId.nonEmptyNativeId("googleDaiId")
+        val playerId = playerIdsByGoogleDaiId[validatedGoogleDaiId]
+            ?: throw GoogleDaiException.UnknownAdapter(validatedGoogleDaiId)
+        val player = PlayerRegistry.getPlayer(playerId)
+            ?: throw GoogleDaiException.PlayerUnavailable(playerId)
+        val nativeSourceConfig = sourceConfig.toGoogleDaiSourceConfig()
+        val validatedSourceConfigFactoryId = sourceConfigFactoryId?.nonEmptyNativeId("sourceConfigFactoryId")
+        try {
+            if (validatedSourceConfigFactoryId == null) {
+                player.googleDai.load(nativeSourceConfig)
+            } else {
+                player.googleDai.load(nativeSourceConfig) { context ->
+                    sourceConfigFromJs(validatedGoogleDaiId, validatedSourceConfigFactoryId, context)
+                }
+            }
+        } catch (error: GoogleDaiException) {
+            throw error
+        } catch (error: Exception) {
+            throw GoogleDaiException.NativeLoadFailed(error.message ?: "Unknown error")
+        }
+    }
+
+    private fun sourceConfigFromJs(
+        googleDaiId: NativeId,
+        sourceConfigFactoryId: String,
+        context: SourceConfigFactoryContext,
+    ): SourceConfig {
+        val fallback = context.toDefaultSourceConfig()
+        val (requestId, wait) = sourceConfigFactoryWaiter.make(SOURCE_CONFIG_FACTORY_TIMEOUT_MS)
+        sendSourceConfigFactoryRequest(requestId, googleDaiId, sourceConfigFactoryId, context)
+        return wait()?.toSourceConfigOrNull() ?: fallback
+    }
+
+    private fun sendSourceConfigFactoryRequest(
+        requestId: Int,
+        googleDaiId: NativeId,
+        sourceConfigFactoryId: String,
+        context: SourceConfigFactoryContext,
+    ) {
+        sendEvent(
+            SOURCE_CONFIG_FACTORY_EVENT,
+            bundleOf(
+                "requestId" to requestId,
+                "googleDaiId" to googleDaiId,
+                "sourceConfigFactoryId" to sourceConfigFactoryId,
+                "context" to context.toJson(),
+            ),
+        )
     }
 }
 
@@ -85,6 +145,28 @@ private fun Map<String, Any?>.toGoogleDaiSourceConfig(): GoogleDaiSourceConfig {
         networkCode = optionalString("networkCode"),
         adTagParameters = adTagParameters(),
     )
+}
+
+private fun SourceConfigFactoryContext.toDefaultSourceConfig(): SourceConfig = SourceConfig(url, sourceType)
+
+private fun SourceConfigFactoryContext.toJson(): Map<String, Any?> = mapOf(
+    "url" to url,
+    "sourceType" to sourceType.toReactNativeValue(),
+    "subtitleMetadata" to subtitleMetadata,
+)
+
+private fun SourceType.toReactNativeValue(): String = when (this) {
+    SourceType.Dash -> "dash"
+    SourceType.Hls -> "hls"
+    SourceType.Progressive -> "progressive"
+    SourceType.Smooth -> "smooth"
+    else -> "none"
+}
+
+private fun Map<String, Any?>.toSourceConfigOrNull(): SourceConfig? = try {
+    toSourceConfig()
+} catch (_: Exception) {
+    null
 }
 
 private fun Map<String, Any?>.nonEmptyString(key: String): String {

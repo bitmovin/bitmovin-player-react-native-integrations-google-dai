@@ -8,6 +8,7 @@ public class GoogleDaiModule: Module {
 
     public func definition() -> ModuleDefinition {
         Name("GoogleDaiModule")
+        Events("onSourceConfigFactoryRequest")
 
         OnDestroy { [weak self] in
             self?.playerIdsByGoogleDaiId.removeAll()
@@ -27,7 +28,7 @@ public class GoogleDaiModule: Module {
             self?.playerIdsByGoogleDaiId[googleDaiId] = playerId
         }.runOnQueue(.main)
 
-        AsyncFunction("load") { @MainActor [weak self] (googleDaiId: NativeId, sourceConfig: [String: Any]) in
+        AsyncFunction("load") { @MainActor [weak self] (googleDaiId: NativeId, sourceConfig: [String: Any], _: String?) in
             guard let playerId = self?.playerIdsByGoogleDaiId[googleDaiId],
                   let player = PlayerRegistry.getPlayer(nativeId: playerId)
             else {
@@ -38,6 +39,10 @@ public class GoogleDaiModule: Module {
             }
 
             player.googleDai.load(source: try googleDaiSource(from: sourceConfig))
+        }.runOnQueue(.main)
+
+        AsyncFunction("setSourceConfigFactoryResult") { (_: Int, _: [String: Any]?) in
+            // No-op until the native iOS integration exposes source config customization.
         }.runOnQueue(.main)
 
         AsyncFunction("destroy") { @MainActor [weak self] (googleDaiId: NativeId) in

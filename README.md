@@ -22,7 +22,7 @@ The companion package is an Expo module and does not require a companion Expo co
 
 - Peer package: `bitmovin-player-react-native@>=1.22.0`
 - Expo crypto peer: `expo-crypto@>=14.0.0` (used for generated Google DAI native IDs)
-- Android native DAI artifact: `com.bitmovin.player.integration:google-dai:0.1.0-alpha.1`
+- Android native DAI artifact: `com.bitmovin.player.integration:google-dai:0.1.0-alpha.2`
 - Minimum Android Bitmovin Player SDK version: `3.159.0+jason`.
 - iOS native DAI package: `bitmovin-player-ios-integrations-google-dai@0.1.0-a.2` via React Native Swift Package Manager support.
 - iOS: live HLS streams only. DASH is Android-only; ad tag parameters are not supported by the native iOS integration yet.
@@ -94,6 +94,16 @@ export function GoogleDaiPlayer() {
 ```ts
 const player = withGoogleDai(new Player(config));
 await player.googleDai.load(liveDaiConfig);
+await player.googleDai.load(liveDaiConfig, {
+  sourceConfigFactory: ({ url, sourceType }) => ({
+    url,
+    type: sourceType,
+    title: 'Live DAI channel',
+    metadata: {
+      channelId: 'example-live',
+    },
+  }),
+});
 player.play();
 player.destroy();
 ```
@@ -127,6 +137,12 @@ export interface GoogleDaiLiveSourceConfig {
 The MVP supports live DAI streams only. VOD support is intentionally rejected until the native source-config contract is added. DASH sources are Android-only. `adTagParameters` are Android-only until the native iOS integration adds support.
 
 > Note: Seeking or time-shifting back into an already-played Google DAI ad segment does not replay IMA ad lifecycle events. The media may play again, but ad events are emitted only according to Google IMA DAI tracking state.
+
+### Source config factory
+
+`player.googleDai.load(liveDaiConfig, { sourceConfigFactory })` lets apps customize the Bitmovin Player `SourceConfig` created from the Google DAI stream response. The factory receives the native DAI source context and may return a partial source config; omitted `url` and `type` default to the DAI-provided values.
+
+Android native waits briefly for JavaScript to provide the source config. If the factory throws, rejects, times out, or returns invalid data, native falls back to the default `SourceConfig(context.url, context.sourceType)`. iOS currently ignores the factory and loads the default HLS source until the native integration exposes source config customization.
 
 ## Example app
 
