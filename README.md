@@ -128,6 +128,8 @@ export interface GoogleDaiLiveSourceConfig {
 
 The MVP supports live DAI streams only. VOD support is intentionally rejected until the native source-config contract is added.
 
+> Note: Seeking or time-shifting back into an already-played Google DAI ad segment does not replay IMA ad lifecycle events. The media may play again, but ad events are emitted only according to Google IMA DAI tracking state.
+
 ## Example app
 
 This repository includes a minimal Expo dev-client sample under [`example/`](example/) that installs this package via `file:..`, configures the core `bitmovin-player-react-native` plugin with `BITMOVIN_PLAYER_LICENSE_KEY`, and loads Google's public live DAI HLS test stream.
