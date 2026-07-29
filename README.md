@@ -2,9 +2,6 @@
 
 Optional companion package for Google IMA Dynamic Ad Insertion (DAI/SSAI) support in `bitmovin-player-react-native`.
 
-> Release note: this package is staged for Android-first support. iOS currently uses a placeholder module until the native DAI SDK contract is confirmed.
-
-
 ## Contributions to this project
 
 As an open-source project, we welcome changes, updates, and fixes from the community. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
@@ -27,7 +24,8 @@ The companion package is an Expo module and does not require a companion Expo co
 - Expo crypto peer: `expo-crypto@>=14.0.0` (used for generated Google DAI native IDs)
 - Android native DAI artifact: `com.bitmovin.player.integration:google-dai:0.1.0-alpha.1`
 - Minimum Android Bitmovin Player SDK version: `3.159.0+jason`.
-- iOS: placeholder Expo module only; no Bitmovin Player or Google DAI native pods are linked until the iOS DAI SDK contract is confirmed.
+- iOS native DAI package: `bitmovin-player-ios-integrations-google-dai@0.1.0-a.2` via React Native Swift Package Manager support.
+- iOS: live HLS streams only. DASH is Android-only; ad tag parameters are not supported by the native iOS integration yet.
 - Android repository:
 
 ```kotlin
@@ -75,9 +73,6 @@ export function GoogleDaiPlayer() {
         type: GoogleDaiSourceType.HLS,
         apiKey: '...',
         networkCode: '...',
-        adTagParameters: {
-          cust_params: '...',
-        },
       })
       .then(() => player.play())
       .catch((error) => console.warn('Google DAI load failed', error));
@@ -122,11 +117,14 @@ export interface GoogleDaiLiveSourceConfig {
   type: GoogleDaiSourceType;
   apiKey?: string;
   networkCode?: string;
+  /**
+   * @platform Android
+   */
   adTagParameters?: Record<string, string>;
 }
 ```
 
-The MVP supports live DAI streams only. VOD support is intentionally rejected until the native source-config contract is added.
+The MVP supports live DAI streams only. VOD support is intentionally rejected until the native source-config contract is added. DASH sources are Android-only. `adTagParameters` are Android-only until the native iOS integration adds support.
 
 > Note: Seeking or time-shifting back into an already-played Google DAI ad segment does not replay IMA ad lifecycle events. The media may play again, but ad events are emitted only according to Google IMA DAI tracking state.
 
@@ -145,11 +143,8 @@ yarn android
 
 ## iOS status
 
-The iOS Expo module is intentionally a minimal placeholder so Apple builds can autolink this companion without pulling in unconfirmed native DAI dependencies. `initialize()` and `load()` reject with `IOS_GOOGLE_DAI_NOT_IMPLEMENTED`; `destroy()` is a no-op. The following iOS SDK-owner confirmations are still required before public release:
+The iOS Expo module attaches the native Bitmovin Google DAI module to the existing React Native Bitmovin Player instance during `withGoogleDai()` initialization. The native iOS integration currently supports live HLS sources. The following iOS SDK-owner confirmations are still required before broader feature parity:
 
-- pod name and module import;
-- supported platforms;
-- native DAI adapter class and constructor;
-- source config type and source type enum;
-- load/destroy semantics;
+- source config customization hook;
+- ad tag parameter support;
 - regular ad/SSAI event forwarding behavior.
