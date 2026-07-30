@@ -41,17 +41,15 @@ export default function App() {
     }
     didStartLoadRef.current = true;
     void player.googleDai
-      .load(liveDaiConfig, {
-        sourceConfigFactory: ({ url, sourceType }) => ({
-          url,
-          type: sourceType,
-          title: 'Google DAI Live Stream',
-          metadata: {
-            assetKey: liveDaiConfig.assetKey,
-            networkCode: liveDaiConfig.networkCode,
-          },
-        }),
-      })
+      .load(liveDaiConfig, ({ url, sourceType }) => ({
+        url,
+        type: sourceType,
+        title: 'Google DAI Live Stream',
+        metadata: {
+          assetKey: liveDaiConfig.assetKey,
+          networkCode: liveDaiConfig.networkCode,
+        },
+      }))
       .then(() => player.play())
       .catch((error) => {
         console.warn('[Google DAI Example] load failed', error);

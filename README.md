@@ -94,16 +94,14 @@ export function GoogleDaiPlayer() {
 ```ts
 const player = withGoogleDai(new Player(config));
 await player.googleDai.load(liveDaiConfig);
-await player.googleDai.load(liveDaiConfig, {
-  sourceConfigFactory: ({ url, sourceType }) => ({
-    url,
-    type: sourceType,
-    title: 'Live DAI channel',
-    metadata: {
-      channelId: 'example-live',
-    },
-  }),
-});
+await player.googleDai.load(liveDaiConfig, ({ url, sourceType }) => ({
+  url,
+  type: sourceType,
+  title: 'Live DAI channel',
+  metadata: {
+    channelId: 'example-live',
+  },
+}));
 player.play();
 player.destroy();
 ```
@@ -140,7 +138,7 @@ The MVP supports live DAI streams only. VOD support is intentionally rejected un
 
 ### Source config factory
 
-`player.googleDai.load(liveDaiConfig, { sourceConfigFactory })` lets apps customize the Bitmovin Player `SourceConfig` created from the Google DAI stream response. The factory receives the native DAI source context and may return a partial source config; omitted `url` and `type` default to the DAI-provided values.
+`player.googleDai.load(liveDaiConfig, sourceConfigFactory)` lets apps customize the Bitmovin Player `SourceConfig` created from the Google DAI stream response. The factory receives the native DAI source context and may return a partial source config; omitted `url` and `type` default to the DAI-provided values.
 
 Android native waits briefly for JavaScript to provide the source config. If the factory throws, rejects, times out, or returns invalid data, native falls back to the default `SourceConfig(context.url, context.sourceType)`. iOS currently ignores the factory and loads the default HLS source until the native integration exposes source config customization.
 

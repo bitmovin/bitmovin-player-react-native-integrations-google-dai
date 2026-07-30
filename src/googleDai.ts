@@ -13,7 +13,7 @@ import {
 export interface GoogleDaiApi {
   load(
     sourceConfig: GoogleDaiSourceConfig,
-    options?: GoogleDaiLoadOptions
+    sourceConfigFactory?: GoogleDaiSourceConfigFactory
   ): Promise<void>;
 }
 
@@ -21,15 +21,11 @@ export interface GoogleDaiCapability {
   readonly googleDai: GoogleDaiApi;
 }
 
-export interface GoogleDaiLoadOptions {
-  /**
-   * Builds the Player `SourceConfig` from the DAI-provided source context.
-   * Native waits briefly for this callback and falls back to the default
-   * source config when it throws, rejects, times out, or returns invalid data.
-   */
-  sourceConfigFactory?: GoogleDaiSourceConfigFactory;
-}
-
+/**
+ * Builds the Player `SourceConfig` from the DAI-provided source context.
+ * Native waits briefly for this callback and falls back to the default
+ * source config when it throws, rejects, times out, or returns invalid data.
+ */
 export type GoogleDaiSourceConfigFactory = (
   context: GoogleDaiSourceConfigFactoryContext
 ) =>
@@ -147,10 +143,11 @@ class NativeGoogleDai implements GoogleDaiApi {
 
   load = async (
     sourceConfig: GoogleDaiSourceConfig,
-    options?: GoogleDaiLoadOptions
+    sourceConfigFactory?: GoogleDaiSourceConfigFactory
   ): Promise<void> => {
     const validatedConfig = validateSourceConfig(sourceConfig);
-    const sourceConfigFactoryId = this.prepareSourceConfigFactory(options);
+    const sourceConfigFactoryId =
+      this.prepareSourceConfigFactory(sourceConfigFactory);
     try {
       await this.initializeNative();
       this.ensurePlayerInitialized();
@@ -166,17 +163,16 @@ class NativeGoogleDai implements GoogleDaiApi {
   };
 
   private prepareSourceConfigFactory(
-    options: GoogleDaiLoadOptions | undefined
+    sourceConfigFactory: GoogleDaiSourceConfigFactory | undefined
   ): string | undefined {
-    const sourceConfigFactory =
-      validateLoadOptions(options).sourceConfigFactory;
-    if (!sourceConfigFactory) {
+    const validatedFactory = validateSourceConfigFactory(sourceConfigFactory);
+    if (!validatedFactory) {
       this.clearSourceConfigFactory();
       return undefined;
     }
     this.ensureSourceConfigFactoryListener();
     const id = createSourceConfigFactoryId();
-    this.activeSourceConfigFactory = { id, factory: sourceConfigFactory };
+    this.activeSourceConfigFactory = { id, factory: validatedFactory };
     return id;
   }
 
@@ -338,21 +334,16 @@ function assertPlayer(player: GoogleDaiPlayer): GoogleDaiPlayer {
   return player;
 }
 
-function validateLoadOptions(options: unknown): GoogleDaiLoadOptions {
-  if (options == null) {
-    return {};
-  }
-  const candidate = assertRecord(options, 'GoogleDai load options');
-  const sourceConfigFactory = candidate.sourceConfigFactory;
+function validateSourceConfigFactory(
+  sourceConfigFactory: unknown
+): GoogleDaiSourceConfigFactory | undefined {
   if (sourceConfigFactory == null) {
-    return {};
+    return undefined;
   }
   if (typeof sourceConfigFactory !== 'function') {
     throw new Error('GoogleDai sourceConfigFactory must be a function.');
   }
-  return {
-    sourceConfigFactory: sourceConfigFactory as GoogleDaiSourceConfigFactory,
-  };
+  return sourceConfigFactory as GoogleDaiSourceConfigFactory;
 }
 
 function validateSourceConfig(
