@@ -24,6 +24,8 @@ final class GoogleDaiSourceConfigFactoryBridge {
         sourceConfig: SourceConfig,
         sendEvent: (_ eventName: String, _ body: [String: Any]) -> Void
     ) {
+        // The upstream configuration callback is synchronous on MainActor, so the bridge uses
+        // the same bounded wait pattern as other synchronous RN Bitmovin callbacks.
         let (requestId, wait) = waiter.make(timeout: sourceConfigFactoryTimeout)
         sendEvent(googleDaiSourceConfigFactoryEventName, [
             "requestId": requestId,

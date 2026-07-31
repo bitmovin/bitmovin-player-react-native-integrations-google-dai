@@ -138,9 +138,9 @@ The MVP supports live DAI streams only. VOD support is intentionally rejected un
 
 ### Source config factory
 
-`player.googleDai.load(liveDaiConfig, sourceConfigFactory)` lets apps customize the Bitmovin Player `SourceConfig` created from the Google DAI stream response. The factory receives the native DAI source context and may return a partial source config; omitted `url` and `type` default to the DAI-provided values.
+`player.googleDai.load(liveDaiConfig, sourceConfigFactory)` lets apps customize the Bitmovin Player `SourceConfig` created from the Google DAI stream response. The synchronous factory receives the native DAI source context and may return a partial source config; omitted `url` and `type` default to the DAI-provided values.
 
-Native waits briefly for JavaScript to provide the source config. If the factory throws, rejects, times out, or returns invalid data, native falls back to the default `SourceConfig(context.url, context.sourceType)`. On iOS, the native DAI stream URL and source type are fixed by the iOS integration, so returned `url` and `type` values are ignored; other mutable source config fields are applied.
+Native waits briefly for JavaScript to provide the source config. If the factory throws, times out, or returns invalid data, native falls back to the default `SourceConfig(context.url, context.sourceType)`. On iOS, the native DAI stream URL and source type are fixed by the iOS integration, so returned `url` and `type` values are ignored; other mutable source config fields are applied.
 
 ## Example app
 
