@@ -24,7 +24,7 @@ The companion package is an Expo module and does not require a companion Expo co
 - Expo crypto peer: `expo-crypto@>=14.0.0` (used for generated Google DAI native IDs)
 - Android native DAI artifact: `com.bitmovin.player.integration:google-dai:0.1.0-alpha.2`
 - Minimum Android Bitmovin Player SDK version: `3.159.0+jason`.
-- iOS native DAI package: `bitmovin-player-ios-integrations-google-dai@0.1.0-a.3` via React Native Swift Package Manager support.
+- iOS native DAI package: `bitmovin-player-ios-integrations-google-dai@0.1.0-a.4` via React Native Swift Package Manager support.
 - iOS: live HLS streams only. DASH is Android-only; ad tag parameters are not supported by the native iOS integration yet.
 - Android repository:
 
@@ -140,7 +140,7 @@ The MVP supports live DAI streams only. VOD support is intentionally rejected un
 
 `player.googleDai.load(liveDaiConfig, sourceConfigFactory)` lets apps customize the Bitmovin Player `SourceConfig` created from the Google DAI stream response. The factory receives the native DAI source context and may return a partial source config; omitted `url` and `type` default to the DAI-provided values.
 
-Android native waits briefly for JavaScript to provide the source config. If the factory throws, rejects, times out, or returns invalid data, native falls back to the default `SourceConfig(context.url, context.sourceType)`. iOS currently ignores the factory and loads the default HLS source until the native integration exposes source config customization.
+Native waits briefly for JavaScript to provide the source config. If the factory throws, rejects, times out, or returns invalid data, native falls back to the default `SourceConfig(context.url, context.sourceType)`. On iOS, the native DAI stream URL and source type are fixed by the iOS integration, so returned `url` and `type` values are ignored; other mutable source config fields are applied.
 
 ## Example app
 
@@ -159,6 +159,5 @@ yarn android
 
 The iOS Expo module attaches the native Bitmovin Google DAI module to the existing React Native Bitmovin Player instance during `withGoogleDai()` initialization. The native iOS integration currently supports live HLS sources. The following iOS SDK-owner confirmations are still required before broader feature parity:
 
-- source config customization hook;
 - ad tag parameter support;
 - regular ad/SSAI event forwarding behavior.
