@@ -7,37 +7,72 @@ let googleDaiSourceConfigFactoryEventName = "onSourceConfigFactoryRequest"
 private let sourceConfigFactoryTimeout: TimeInterval = 0.25
 
 final class GoogleDaiSourceConfigFactoryBridge {
-    private let waiter = SourceConfigFactoryResultWaiter()
+    private struct PendingResult {
+        let semaphore: DispatchSemaphore
+        var value: [String: Any]?
+    }
+
+    private let lock = NSLock()
+    private var nextRequestId = 0
+    private var pendingResults: [Int: PendingResult] = [:]
 
     func removeAll() {
-        waiter.removeAll()
+        lock.lock()
+        let semaphores = pendingResults.values.map(\.semaphore)
+        pendingResults.removeAll()
+        lock.unlock()
+        semaphores.forEach { $0.signal() }
     }
 
     func complete(requestId: Int, sourceConfig: [String: Any]?) {
-        waiter.complete(id: requestId, with: sourceConfig ?? [:])
+        lock.lock()
+        guard var result = pendingResults[requestId] else {
+            lock.unlock()
+            return
+        }
+        result.value = sourceConfig ?? [:]
+        pendingResults[requestId] = result
+        lock.unlock()
+        result.semaphore.signal()
     }
 
     @MainActor
     func configureSourceConfigFromJs(
-        googleDaiId: NativeId,
         sourceConfigFactoryId: NativeId,
         sourceConfig: SourceConfig,
         sendEvent: (_ eventName: String, _ body: [String: Any]) -> Void
     ) {
         // The upstream configuration callback is synchronous on MainActor, so the bridge uses
         // the same bounded wait pattern as other synchronous RN Bitmovin callbacks.
-        let (requestId, wait) = waiter.make(timeout: sourceConfigFactoryTimeout)
+        let (requestId, semaphore) = makePendingResult()
         sendEvent(googleDaiSourceConfigFactoryEventName, [
             "requestId": requestId,
-            "googleDaiId": googleDaiId,
             "sourceConfigFactoryId": sourceConfigFactoryId,
             "context": sourceConfigFactoryContext(from: sourceConfig)
         ])
 
-        guard let result = wait() else {
+        _ = semaphore.wait(timeout: .now() + sourceConfigFactoryTimeout)
+        guard let result = takePendingResult(requestId) else {
             return
         }
         applySourceConfigFactoryResult(result, to: sourceConfig)
+    }
+
+    private func makePendingResult() -> (id: Int, semaphore: DispatchSemaphore) {
+        let semaphore = DispatchSemaphore(value: 0)
+        lock.lock()
+        nextRequestId += 1
+        let requestId = nextRequestId
+        pendingResults[requestId] = PendingResult(semaphore: semaphore, value: nil)
+        lock.unlock()
+        return (requestId, semaphore)
+    }
+
+    private func takePendingResult(_ requestId: Int) -> [String: Any]? {
+        lock.lock()
+        let result = pendingResults.removeValue(forKey: requestId)?.value
+        lock.unlock()
+        return result
     }
 }
 
@@ -194,59 +229,5 @@ private extension SourceType {
         default:
             return "none"
         }
-    }
-}
-
-private final class SourceConfigFactoryResultWaiter {
-    private struct Entry {
-        let semaphore: DispatchSemaphore
-        var value: [String: Any]?
-    }
-
-    private let lock = NSLock()
-    private var nextId = 0
-    private var entries: [Int: Entry] = [:]
-
-    func make(timeout: TimeInterval) -> (id: Int, wait: () -> [String: Any]?) {
-        let semaphore = DispatchSemaphore(value: 0)
-        lock.lock()
-        nextId += 1
-        let id = nextId
-        entries[id] = Entry(semaphore: semaphore, value: nil)
-        lock.unlock()
-
-        let wait = { [weak self] () -> [String: Any]? in
-            _ = semaphore.wait(timeout: .now() + timeout)
-            guard let self else {
-                return nil
-            }
-            self.lock.lock()
-            let value = self.entries[id]?.value
-            self.entries[id] = nil
-            self.lock.unlock()
-            return value
-        }
-
-        return (id, wait)
-    }
-
-    func complete(id: Int, with value: [String: Any]) {
-        lock.lock()
-        guard var entry = entries[id] else {
-            lock.unlock()
-            return
-        }
-        entry.value = value
-        entries[id] = entry
-        lock.unlock()
-        entry.semaphore.signal()
-    }
-
-    func removeAll() {
-        lock.lock()
-        let semaphores = entries.values.map(\.semaphore)
-        entries.removeAll()
-        lock.unlock()
-        semaphores.forEach { $0.signal() }
     }
 }

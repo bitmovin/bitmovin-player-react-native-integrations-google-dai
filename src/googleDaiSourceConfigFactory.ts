@@ -1,12 +1,16 @@
 import type { SourceConfig, SourceOptions } from 'bitmovin-player-react-native';
 import { TimelineReferencePoint } from 'bitmovin-player-react-native';
-import type { EventSubscription } from 'expo-modules-core';
 import * as Crypto from 'expo-crypto';
 import GoogleDaiModule, {
   addSourceConfigFactoryRequestListener,
   type GoogleDaiSourceConfigFactoryRequest,
 } from './modules/GoogleDaiModule';
 import { GoogleDaiSourceType } from './googleDaiSourceConfig';
+import {
+  deleteSourceConfigFactory,
+  storeSourceConfigFactory,
+  takeSourceConfigFactory,
+} from './googleDaiSourceConfigFactoryRegistry';
 import {
   assertRecord,
   optionalArray,
@@ -21,7 +25,7 @@ import {
 } from './googleDaiValidation';
 
 const sourceConfigFactoryIdPrefix = 'source-config-factory';
-const sourceConfigFactoryRegistrationTimeoutMs = 60_000;
+let isListenerInstalled = false;
 
 /**
  * Builds the Player `SourceConfig` from the DAI-provided source context.
@@ -60,145 +64,61 @@ export type GoogleDaiSourceConfigFactorySourceConfig =
     options?: SourceOptions;
   };
 
-type SourceConfigFactoryRegistration = {
-  readonly googleDaiId: string;
-  readonly factory: GoogleDaiSourceConfigFactory;
-  readonly expiration: ReturnType<typeof setTimeout>;
-};
-
-export interface GoogleDaiSourceConfigFactoryNativeBridge {
-  addRequestListener(
-    listener: (request: GoogleDaiSourceConfigFactoryRequest) => void
-  ): EventSubscription;
-  setResult(
-    requestId: number,
-    sourceConfig: Record<string, unknown> | null
-  ): Promise<void>;
-}
-
-export class GoogleDaiSourceConfigFactoryBridge {
-  private readonly registrations = new Map<
-    string,
-    SourceConfigFactoryRegistration
-  >();
-  private subscription?: EventSubscription;
-
-  constructor(
-    private readonly nativeBridge: GoogleDaiSourceConfigFactoryNativeBridge,
-    private readonly registrationTimeoutMs = sourceConfigFactoryRegistrationTimeoutMs
-  ) {}
-
-  register(
-    googleDaiId: string,
-    factory: GoogleDaiSourceConfigFactory | undefined
-  ): string | undefined {
-    const validatedFactory = validateSourceConfigFactory(factory);
-    if (!validatedFactory) {
-      return undefined;
-    }
-
-    this.ensureListener();
-    const id = this.createFactoryId();
-    const expiration = setTimeout(
-      () => this.unregister(id),
-      this.registrationTimeoutMs
-    );
-    this.registrations.set(id, {
-      googleDaiId,
-      factory: validatedFactory,
-      expiration,
-    });
-    return id;
-  }
-
-  unregister(factoryId: string | undefined): void {
-    if (!factoryId) {
-      return;
-    }
-    const registration = this.registrations.get(factoryId);
-    if (!registration) {
-      return;
-    }
-
-    clearTimeout(registration.expiration);
-    this.registrations.delete(factoryId);
-    this.removeListenerWhenIdle();
-  }
-
-  private ensureListener(): void {
-    if (this.subscription) {
-      return;
-    }
-    this.subscription = this.nativeBridge.addRequestListener(
-      this.handleRequest
-    );
-  }
-
-  private readonly handleRequest = (
-    request: GoogleDaiSourceConfigFactoryRequest
-  ): void => {
-    const registration = this.registrations.get(request.sourceConfigFactoryId);
-    if (!registration || registration.googleDaiId !== request.googleDaiId) {
-      this.complete(request.requestId, null);
-      return;
-    }
-
-    this.unregister(request.sourceConfigFactoryId);
-    try {
-      const context = validateSourceConfigFactoryContext(request.context);
-      const result = registration.factory(context);
-      this.complete(
-        request.requestId,
-        validateSourceConfigFactoryResult(result, context)
-      );
-    } catch {
-      this.complete(request.requestId, null);
-    }
-  };
-
-  private complete(
-    requestId: number,
-    sourceConfig: Record<string, unknown> | null
-  ): void {
-    void this.nativeBridge.setResult(requestId, sourceConfig).catch(() => {
-      // Native falls back after its bounded wait if the response cannot be sent.
-    });
-  }
-
-  private removeListenerWhenIdle(): void {
-    if (this.registrations.size !== 0) {
-      return;
-    }
-    this.subscription?.remove();
-    this.subscription = undefined;
-  }
-
-  private createFactoryId(): string {
-    let id: string;
-    do {
-      id = `${sourceConfigFactoryIdPrefix}-${Crypto.randomUUID()}`;
-    } while (this.registrations.has(id));
-    return id;
-  }
-}
-
-const sourceConfigFactoryBridge = new GoogleDaiSourceConfigFactoryBridge({
-  addRequestListener: addSourceConfigFactoryRequestListener,
-  setResult: (requestId, sourceConfig) =>
-    GoogleDaiModule.setSourceConfigFactoryResult(requestId, sourceConfig),
-});
-
 export function registerSourceConfigFactory(
-  googleDaiId: string,
   factory: GoogleDaiSourceConfigFactory | undefined
 ): string | undefined {
-  return sourceConfigFactoryBridge.register(googleDaiId, factory);
+  const validatedFactory = validateSourceConfigFactory(factory);
+  if (!validatedFactory) {
+    return undefined;
+  }
+
+  installListener();
+  const factoryId = `${sourceConfigFactoryIdPrefix}-${Crypto.randomUUID()}`;
+  storeSourceConfigFactory(factoryId, validatedFactory);
+  return factoryId;
 }
 
-export function unregisterSourceConfigFactory(
-  factoryId: string | undefined
+export function unregisterSourceConfigFactory(factoryId?: string): void {
+  deleteSourceConfigFactory(factoryId);
+}
+
+function installListener(): void {
+  if (isListenerInstalled) {
+    return;
+  }
+  addSourceConfigFactoryRequestListener(handleRequest);
+  isListenerInstalled = true;
+}
+
+function handleRequest(request: GoogleDaiSourceConfigFactoryRequest): void {
+  const factory = takeSourceConfigFactory(request.sourceConfigFactoryId);
+  if (!factory) {
+    completeRequest(request.requestId, null);
+    return;
+  }
+
+  try {
+    const context = validateSourceConfigFactoryContext(request.context);
+    const result = factory(context);
+    completeRequest(
+      request.requestId,
+      validateSourceConfigFactoryResult(result, context)
+    );
+  } catch {
+    completeRequest(request.requestId, null);
+  }
+}
+
+function completeRequest(
+  requestId: number,
+  sourceConfig: Record<string, unknown> | null
 ): void {
-  sourceConfigFactoryBridge.unregister(factoryId);
+  void GoogleDaiModule.setSourceConfigFactoryResult(
+    requestId,
+    sourceConfig
+  ).catch(() => {
+    // Native falls back after its bounded wait if the response cannot be sent.
+  });
 }
 
 function validateSourceConfigFactory(

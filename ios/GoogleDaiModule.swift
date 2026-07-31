@@ -89,7 +89,6 @@ public class GoogleDaiModule: Module {
                 return
             }
             self.sourceConfigFactoryBridge.configureSourceConfigFromJs(
-                googleDaiId: googleDaiId,
                 sourceConfigFactoryId: validatedSourceConfigFactoryId,
                 sourceConfig: nativeSourceConfig
             ) { [weak self] eventName, body in

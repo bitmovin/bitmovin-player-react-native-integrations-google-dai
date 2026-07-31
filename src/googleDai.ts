@@ -112,10 +112,8 @@ class NativeGoogleDai implements GoogleDaiApi {
     sourceConfigFactory?: GoogleDaiSourceConfigFactory
   ): Promise<void> => {
     const validatedConfig = validateSourceConfig(sourceConfig);
-    const sourceConfigFactoryId = registerSourceConfigFactory(
-      this.nativeId,
-      sourceConfigFactory
-    );
+    const sourceConfigFactoryId =
+      registerSourceConfigFactory(sourceConfigFactory);
     try {
       await this.initializeNative();
       this.ensurePlayerInitialized();

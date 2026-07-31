@@ -85,7 +85,7 @@ class GoogleDaiModule : Module() {
                 player.googleDai.load(nativeSourceConfig)
             } else {
                 player.googleDai.load(nativeSourceConfig) { context ->
-                    sourceConfigFromJs(validatedGoogleDaiId, validatedSourceConfigFactoryId, context)
+                    sourceConfigFromJs(validatedSourceConfigFactoryId, context)
                 }
             }
         } catch (error: GoogleDaiException) {
@@ -96,19 +96,17 @@ class GoogleDaiModule : Module() {
     }
 
     private fun sourceConfigFromJs(
-        googleDaiId: NativeId,
         sourceConfigFactoryId: String,
         context: SourceConfigFactoryContext,
     ): SourceConfig {
         val fallback = context.toDefaultSourceConfig()
         val (requestId, wait) = sourceConfigFactoryWaiter.make(SOURCE_CONFIG_FACTORY_TIMEOUT_MS)
-        sendSourceConfigFactoryRequest(requestId, googleDaiId, sourceConfigFactoryId, context)
+        sendSourceConfigFactoryRequest(requestId, sourceConfigFactoryId, context)
         return wait()?.toSourceConfigOrNull() ?: fallback
     }
 
     private fun sendSourceConfigFactoryRequest(
         requestId: Int,
-        googleDaiId: NativeId,
         sourceConfigFactoryId: String,
         context: SourceConfigFactoryContext,
     ) {
@@ -116,7 +114,6 @@ class GoogleDaiModule : Module() {
             SOURCE_CONFIG_FACTORY_EVENT,
             bundleOf(
                 "requestId" to requestId,
-                "googleDaiId" to googleDaiId,
                 "sourceConfigFactoryId" to sourceConfigFactoryId,
                 "context" to context.toJson(),
             ),

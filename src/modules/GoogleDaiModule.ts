@@ -19,7 +19,6 @@ export interface GoogleDaiSourceConfigFactoryRequestContext {
 
 export interface GoogleDaiSourceConfigFactoryRequest {
   requestId: number;
-  googleDaiId: string;
   sourceConfigFactoryId: string;
   context: GoogleDaiSourceConfigFactoryRequestContext;
 }

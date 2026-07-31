@@ -18,7 +18,7 @@
     "example:ios": "yarn --cwd example ios",
     "example:lint": "yarn --cwd example lint",
     "example:typecheck": "yarn --cwd example typecheck",
-    "test": "jest --runInBand"
+    "test": "rm -rf .test-build && tsc -p tsconfig.test.json && node --test .test-build/tests/*.test.js"
   },
   "keywords": [
     "react-native",
@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
-    "@types/jest": "^29.5.14",
+    "@types/node": "^24.10.1",
     "@types/react": "~19.1.10",
     "bitmovin-player-react-native": "1.22.0",
     "eslint": "^8.57.0",
@@ -73,11 +73,9 @@
     "eslint-plugin-prettier": "^5.5.1",
     "expo": "~54.0.35",
     "expo-module-scripts": "^4.1.9",
-    "jest": "^29.7.0",
     "prettier": "^3.6.2",
     "react": "19.1.0",
     "react-native": "0.81.5",
-    "ts-jest": "^29.4.6",
     "typescript": "~5.9.2"
   },
   "module": "expo-module"
