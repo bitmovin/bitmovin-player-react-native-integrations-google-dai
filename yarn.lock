@@ -3062,6 +3062,14 @@ binary-extensions@^2.0.0:
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.3.0.tgz#f6e14a97858d327252200242d4ccfe522c445522"
   integrity sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==
 
+bitmovin-player-react-native@1.22.0:
+  version "1.22.0"
+  resolved "https://registry.yarnpkg.com/bitmovin-player-react-native/-/bitmovin-player-react-native-1.22.0.tgz#51dae33f9c0989092f1812cb92488fbd1f990b1e"
+  integrity sha512-mtEpgVrQj/A4taO4Pci0CoKe+tX3tjGp5Lab2pclPL51XqK7qug8nXe3W0gAhtQ1pPUTT/QtffjDWq96DsfBeg==
+  dependencies:
+    expo-crypto "~15.0.9"
+    expo-keep-awake "~15.0.8"
+
 bplist-creator@0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/bplist-creator/-/bplist-creator-0.1.0.tgz#018a2d1b587f769e379ef5519103730f8963ba1e"

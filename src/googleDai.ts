@@ -1,3 +1,4 @@
+import type { SourceConfig, SourceOptions } from 'bitmovin-player-react-native';
 import type { EventSubscription } from 'expo-modules-core';
 import * as Crypto from 'expo-crypto';
 import GoogleDaiModule, {
@@ -41,23 +42,23 @@ export interface GoogleDaiSourceConfigFactoryContext {
 export type GoogleDaiSourceConfigFactoryResult =
   GoogleDaiSourceConfigFactorySourceConfig | null | undefined;
 
-export interface GoogleDaiSourceConfigFactorySourceConfig {
-  url?: string;
-  type?: GoogleDaiSourceType;
-  title?: string;
-  description?: string;
-  poster?: string;
-  isPosterPersistent?: boolean;
-  subtitleTracks?: unknown[];
-  thumbnailTrack?: string;
-  metadata?: Record<string, string>;
-  options?: GoogleDaiSourceOptions;
-}
+type GoogleDaiSourceConfigFactoryMutableSourceConfig = Pick<
+  SourceConfig,
+  | 'title'
+  | 'description'
+  | 'poster'
+  | 'isPosterPersistent'
+  | 'subtitleTracks'
+  | 'thumbnailTrack'
+  | 'metadata'
+>;
 
-export interface GoogleDaiSourceOptions {
-  startOffset?: number;
-  startOffsetTimelineReference?: 'start' | 'end';
-}
+export type GoogleDaiSourceConfigFactorySourceConfig =
+  Partial<GoogleDaiSourceConfigFactoryMutableSourceConfig> & {
+    url?: string;
+    type?: GoogleDaiSourceType;
+    options?: SourceOptions;
+  };
 
 const googleDaiInstanceSymbol: unique symbol = Symbol(
   'BitmovinPlayerReactNativeGoogleDai.instance'
@@ -524,7 +525,7 @@ function requireStringRecordArray(
 }
 
 function optionalSourceOptions(value: unknown): {
-  options?: GoogleDaiSourceOptions;
+  options?: SourceOptions;
 } {
   if (value == null) {
     return {};
@@ -553,14 +554,17 @@ function optionalNumber<T extends string>(
   return { [field]: value } as Record<T, number>;
 }
 
-function optionalTimelineReference(value: unknown): {
-  startOffsetTimelineReference?: 'start' | 'end';
-} {
+function optionalTimelineReference(
+  value: unknown
+): Pick<SourceOptions, 'startOffsetTimelineReference'> {
   if (value == null) {
     return {};
   }
   if (value === 'start' || value === 'end') {
-    return { startOffsetTimelineReference: value };
+    return {
+      startOffsetTimelineReference:
+        value as SourceOptions['startOffsetTimelineReference'],
+    };
   }
   throw new Error(
     'GoogleDai source config startOffsetTimelineReference must be start or end.'

@@ -1,0 +1,250 @@
+import BitmovinPlayerCore
+import Foundation
+import RNBitmovinPlayer
+
+let googleDaiSourceConfigFactoryEventName = "onSourceConfigFactoryRequest"
+
+private let sourceConfigFactoryTimeout: TimeInterval = 0.25
+
+final class GoogleDaiSourceConfigFactoryBridge {
+    private let waiter = SourceConfigFactoryResultWaiter()
+
+    func removeAll() {
+        waiter.removeAll()
+    }
+
+    func complete(requestId: Int, sourceConfig: [String: Any]?) {
+        waiter.complete(id: requestId, with: sourceConfig ?? [:])
+    }
+
+    @MainActor
+    func configureSourceConfigFromJs(
+        googleDaiId: NativeId,
+        sourceConfigFactoryId: NativeId,
+        sourceConfig: SourceConfig,
+        sendEvent: (_ eventName: String, _ body: [String: Any]) -> Void
+    ) {
+        let (requestId, wait) = waiter.make(timeout: sourceConfigFactoryTimeout)
+        sendEvent(googleDaiSourceConfigFactoryEventName, [
+            "requestId": requestId,
+            "googleDaiId": googleDaiId,
+            "sourceConfigFactoryId": sourceConfigFactoryId,
+            "context": sourceConfigFactoryContext(from: sourceConfig)
+        ])
+
+        guard let result = wait() else {
+            return
+        }
+        applySourceConfigFactoryResult(result, to: sourceConfig)
+    }
+}
+
+private func sourceConfigFactoryContext(from sourceConfig: SourceConfig) -> [String: Any] {
+    [
+        "url": sourceConfig.url.absoluteString,
+        "sourceType": sourceConfig.type.toReactNativeValue(),
+        "subtitleMetadata": []
+    ]
+}
+
+private func applySourceConfigFactoryResult(_ result: [String: Any], to sourceConfig: SourceConfig) {
+    if let title = result["title"] as? String {
+        sourceConfig.title = title
+    }
+    if let description = result["description"] as? String {
+        sourceConfig.sourceDescription = description
+    }
+    if let poster = url(from: result["poster"]) {
+        sourceConfig.posterSource = poster
+    }
+    if let isPosterPersistent = result["isPosterPersistent"] as? Bool {
+        sourceConfig.isPosterPersistent = isPosterPersistent
+    }
+    if let subtitleTracks = result["subtitleTracks"] as? [[String: Any]] {
+        subtitleTracks.compactMap(subtitleTrack(from:)).forEach { sourceConfig.add(subtitleTrack: $0) }
+    }
+    if let thumbnailTrack = thumbnailTrack(from: result["thumbnailTrack"]) {
+        sourceConfig.thumbnailTrack = thumbnailTrack
+    }
+    if let metadata = stringDictionary(from: result["metadata"]) {
+        sourceConfig.metadata = metadata
+    }
+    if let options = result["options"] as? [String: Any] {
+        sourceConfig.options = sourceOptions(from: options)
+    }
+}
+
+private func sourceOptions(from json: [String: Any]) -> SourceOptions {
+    let sourceOptions = SourceOptions()
+    if let startOffset = json["startOffset"] as? NSNumber {
+        sourceOptions.startOffset = startOffset.doubleValue
+    }
+    sourceOptions.startOffsetTimelineReference = timelineReferencePoint(from: json["startOffsetTimelineReference"])
+    return sourceOptions
+}
+
+private func timelineReferencePoint(from value: Any?) -> TimelineReferencePoint {
+    switch value as? String {
+    case "start":
+        return .start
+    case "end":
+        return .end
+    default:
+        return .auto
+    }
+}
+
+private func subtitleTrack(from json: [String: Any]) -> SubtitleTrack? {
+    guard let url = url(from: json["url"]),
+          let label = json["label"] as? String
+    else {
+        return nil
+    }
+
+    let identifier = json["identifier"] as? String ?? UUID().uuidString
+    let isDefaultTrack = json["isDefault"] as? Bool ?? false
+    let language = json["language"] as? String
+    let isForced = json["isForced"] as? Bool ?? false
+
+    if let format = subtitleFormat(from: json["format"]) {
+        return SubtitleTrack(
+            url: url,
+            format: format,
+            label: label,
+            identifier: identifier,
+            isDefaultTrack: isDefaultTrack,
+            language: language,
+            forced: isForced
+        )
+    }
+
+    return SubtitleTrack(
+        url: url,
+        label: label,
+        identifier: identifier,
+        isDefaultTrack: isDefaultTrack,
+        language: language,
+        forced: isForced
+    )
+}
+
+private func subtitleFormat(from value: Any?) -> SubtitleFormat? {
+    switch value as? String {
+    case "cea":
+        return .cea
+    case "vtt":
+        return .webVtt
+    case "ttml":
+        return .ttml
+    case "srt":
+        return .srt
+    default:
+        return nil
+    }
+}
+
+private func thumbnailTrack(from value: Any?) -> ThumbnailTrack? {
+    guard let url = url(from: value) else {
+        return nil
+    }
+    return ThumbnailTrack(
+        url: url,
+        label: "Thumbnails",
+        identifier: UUID().uuidString,
+        isDefaultTrack: false
+    )
+}
+
+private func url(from value: Any?) -> URL? {
+    guard let string = value as? String else {
+        return nil
+    }
+    return URL(string: string)
+}
+
+private func stringDictionary(from value: Any?) -> [String: String]? {
+    if let dictionary = value as? [String: String] {
+        return dictionary
+    }
+    guard let dictionary = value as? [String: Any] else {
+        return nil
+    }
+
+    var result: [String: String] = [:]
+    for (key, value) in dictionary {
+        guard let stringValue = value as? String else {
+            return nil
+        }
+        result[key] = stringValue
+    }
+    return result
+}
+
+private extension SourceType {
+    func toReactNativeValue() -> String {
+        switch self {
+        case .dash:
+            return "dash"
+        case .hls:
+            return "hls"
+        case .progressive:
+            return "progressive"
+        default:
+            return "none"
+        }
+    }
+}
+
+private final class SourceConfigFactoryResultWaiter {
+    private struct Entry {
+        let semaphore: DispatchSemaphore
+        var value: [String: Any]?
+    }
+
+    private let lock = NSLock()
+    private var nextId = 0
+    private var entries: [Int: Entry] = [:]
+
+    func make(timeout: TimeInterval) -> (id: Int, wait: () -> [String: Any]?) {
+        let semaphore = DispatchSemaphore(value: 0)
+        lock.lock()
+        nextId += 1
+        let id = nextId
+        entries[id] = Entry(semaphore: semaphore, value: nil)
+        lock.unlock()
+
+        let wait = { [weak self] () -> [String: Any]? in
+            _ = semaphore.wait(timeout: .now() + timeout)
+            guard let self else {
+                return nil
+            }
+            self.lock.lock()
+            let value = self.entries[id]?.value
+            self.entries[id] = nil
+            self.lock.unlock()
+            return value
+        }
+
+        return (id, wait)
+    }
+
+    func complete(id: Int, with value: [String: Any]) {
+        lock.lock()
+        guard var entry = entries[id] else {
+            lock.unlock()
+            return
+        }
+        entry.value = value
+        entries[id] = entry
+        lock.unlock()
+        entry.semaphore.signal()
+    }
+
+    func removeAll() {
+        lock.lock()
+        let semaphores = entries.values.map(\.semaphore)
+        entries.removeAll()
+        lock.unlock()
+        semaphores.forEach { $0.signal() }
+    }
+}
