@@ -45,6 +45,7 @@
     "build",
     "expo-module.config.json",
     "ios/GoogleDaiModule.swift",
+    "ios/GoogleDaiSourceConfigFactoryBridge.swift",
     "ios/RNBitmovinPlayerGoogleDai.podspec",
     "src",
     "README.md"

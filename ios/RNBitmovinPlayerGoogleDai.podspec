@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   spm_dependency(
     s,
     url: 'https://github.com/bitmovin/bitmovin-player-ios-integrations-google-dai.git',
-    requirement: { kind: 'exactVersion', version: '0.1.0-a.2' },
+    requirement: { kind: 'exactVersion', version: '0.1.0-a.4' },
     products: ['BitmovinGoogleDAIPlayer']
   )
 
