@@ -8,7 +8,11 @@ const moduleName = 'GoogleDaiModule';
 
 declare class GoogleDaiModule extends NativeModule {
   initialize(googleDaiId: string, playerId: string): Promise<void>;
-  load(googleDaiId: string, sourceConfig: GoogleDaiSourceConfig): Promise<void>;
+  load(
+    googleDaiId: string,
+    sourceConfig: GoogleDaiSourceConfig,
+    sourceConfigFactoryId: string | null
+  ): Promise<void>;
   destroy(googleDaiId: string): Promise<void>;
 }
 
@@ -26,8 +30,16 @@ export function assertGoogleDaiModuleAvailable(): GoogleDaiModule {
 const GoogleDaiModuleProxy: GoogleDaiModule = {
   initialize: (googleDaiId: string, playerId: string) =>
     assertGoogleDaiModuleAvailable().initialize(googleDaiId, playerId),
-  load: (googleDaiId: string, sourceConfig: GoogleDaiSourceConfig) =>
-    assertGoogleDaiModuleAvailable().load(googleDaiId, sourceConfig),
+  load: (
+    googleDaiId: string,
+    sourceConfig: GoogleDaiSourceConfig,
+    sourceConfigFactoryId: string | null
+  ) =>
+    assertGoogleDaiModuleAvailable().load(
+      googleDaiId,
+      sourceConfig,
+      sourceConfigFactoryId
+    ),
   destroy: (googleDaiId: string) =>
     assertGoogleDaiModuleAvailable().destroy(googleDaiId),
 } as GoogleDaiModule;

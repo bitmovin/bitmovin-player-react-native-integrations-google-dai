@@ -25,7 +25,7 @@ class GoogleDaiModule : Module() {
             initialize(googleDaiId, playerId)
         }.runOnQueue(Queues.MAIN)
 
-        AsyncFunction("load") { googleDaiId: NativeId, sourceConfig: Map<String, Any?> ->
+        AsyncFunction("load") { googleDaiId: NativeId, sourceConfig: Map<String, Any?>, _: String? ->
             val validatedGoogleDaiId = googleDaiId.nonEmptyNativeId("googleDaiId")
             val playerId = playerIdsByGoogleDaiId[validatedGoogleDaiId]
                 ?: throw GoogleDaiException.UnknownAdapter(validatedGoogleDaiId)
