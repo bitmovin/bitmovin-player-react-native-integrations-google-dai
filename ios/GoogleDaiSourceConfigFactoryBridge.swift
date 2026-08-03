@@ -12,28 +12,29 @@ final class GoogleDaiSourceConfigFactoryBridge {
         var value: [String: Any]?
     }
 
-    private let lock = NSLock()
+    private let lock = NSRecursiveLock()
     private var nextRequestId = 0
     private var pendingResults: [Int: PendingResult] = [:]
 
     func removeAll() {
-        lock.lock()
-        let semaphores = pendingResults.values.map(\.semaphore)
-        pendingResults.removeAll()
-        lock.unlock()
+        let semaphores = lock.withLock {
+            let semaphores = pendingResults.values.map(\.semaphore)
+            pendingResults.removeAll()
+            return semaphores
+        }
         semaphores.forEach { $0.signal() }
     }
 
     func complete(requestId: Int, sourceConfig: [String: Any]?) {
-        lock.lock()
-        guard var result = pendingResults[requestId] else {
-            lock.unlock()
-            return
+        let semaphore = lock.withLock { () -> DispatchSemaphore? in
+            guard var result = pendingResults[requestId] else {
+                return nil
+            }
+            result.value = sourceConfig ?? [:]
+            pendingResults[requestId] = result
+            return result.semaphore
         }
-        result.value = sourceConfig ?? [:]
-        pendingResults[requestId] = result
-        lock.unlock()
-        result.semaphore.signal()
+        semaphore?.signal()
     }
 
     @MainActor
@@ -60,19 +61,19 @@ final class GoogleDaiSourceConfigFactoryBridge {
 
     private func makePendingResult() -> (id: Int, semaphore: DispatchSemaphore) {
         let semaphore = DispatchSemaphore(value: 0)
-        lock.lock()
-        nextRequestId += 1
-        let requestId = nextRequestId
-        pendingResults[requestId] = PendingResult(semaphore: semaphore, value: nil)
-        lock.unlock()
+        let requestId = lock.withLock {
+            nextRequestId += 1
+            let requestId = nextRequestId
+            pendingResults[requestId] = PendingResult(semaphore: semaphore, value: nil)
+            return requestId
+        }
         return (requestId, semaphore)
     }
 
     private func takePendingResult(_ requestId: Int) -> [String: Any]? {
-        lock.lock()
-        let result = pendingResults.removeValue(forKey: requestId)?.value
-        lock.unlock()
-        return result
+        lock.withLock {
+            pendingResults.removeValue(forKey: requestId)?.value
+        }
     }
 }
 

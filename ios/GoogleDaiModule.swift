@@ -37,7 +37,10 @@ public class GoogleDaiModule: Module {
             sourceConfigFactoryId: String?
         ) in
             guard let self else {
-                return
+                throw googleDaiException(
+                    "GOOGLE_DAI_PLAYER_UNAVAILABLE",
+                    "GoogleDai '\(googleDaiId)' is not initialized or its Player is unavailable."
+                )
             }
             try self.load(
                 googleDaiId: googleDaiId,
@@ -126,7 +129,7 @@ private func googleDaiSource(from config: [String: Any]) throws -> GoogleDaiSour
 }
 
 private func nonEmptyNativeId(_ nativeId: NativeId, field: String) throws -> NativeId {
-    if nativeId.isEmpty {
+    if nativeId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
         throw googleDaiException(
             "GOOGLE_DAI_INVALID_NATIVE_ID",
             "\(field) must be a non-empty string."
