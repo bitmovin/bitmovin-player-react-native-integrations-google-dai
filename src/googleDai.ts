@@ -2,13 +2,32 @@ import * as Crypto from 'expo-crypto';
 import GoogleDaiModule, {
   assertGoogleDaiModuleAvailable,
 } from './modules/GoogleDaiModule';
+import type { GoogleDaiSourceConfig } from './googleDaiSourceConfig';
 import {
-  type GoogleDaiSourceConfig,
-  GoogleDaiSourceType,
-} from './googleDaiSourceConfig';
+  registerSourceConfigFactory,
+  unregisterSourceConfigFactory,
+  type GoogleDaiSourceConfigFactory,
+} from './googleDaiSourceConfigFactory';
+import {
+  assertRecord,
+  optionalString,
+  optionalStringRecord,
+  requireNonEmptyString,
+  requireSourceType,
+} from './googleDaiValidation';
+
+export type {
+  GoogleDaiSourceConfigFactory,
+  GoogleDaiSourceConfigFactoryContext,
+  GoogleDaiSourceConfigFactoryResult,
+  GoogleDaiSourceConfigFactorySourceConfig,
+} from './googleDaiSourceConfigFactory';
 
 export interface GoogleDaiApi {
-  load(sourceConfig: GoogleDaiSourceConfig): Promise<void>;
+  load(
+    sourceConfig: GoogleDaiSourceConfig,
+    sourceConfigFactory?: GoogleDaiSourceConfigFactory
+  ): Promise<void>;
 }
 
 export interface GoogleDaiCapability {
@@ -88,11 +107,25 @@ class NativeGoogleDai implements GoogleDaiApi {
     this.nativeId = createGoogleDaiNativeId();
   }
 
-  load = async (sourceConfig: GoogleDaiSourceConfig): Promise<void> => {
+  load = async (
+    sourceConfig: GoogleDaiSourceConfig,
+    sourceConfigFactory?: GoogleDaiSourceConfigFactory
+  ): Promise<void> => {
     const validatedConfig = validateSourceConfig(sourceConfig);
-    await this.initializeNative();
-    this.ensurePlayerInitialized();
-    await GoogleDaiModule.load(this.nativeId, validatedConfig, null);
+    const sourceConfigFactoryId =
+      registerSourceConfigFactory(sourceConfigFactory);
+    try {
+      await this.initializeNative();
+      this.ensurePlayerInitialized();
+      await GoogleDaiModule.load(
+        this.nativeId,
+        validatedConfig,
+        sourceConfigFactoryId ?? null
+      );
+    } catch (error) {
+      unregisterSourceConfigFactory(sourceConfigFactoryId);
+      throw error;
+    }
   };
 
   private initializeNative(): Promise<void> {
@@ -204,58 +237,6 @@ function validateSourceConfig(
     type: requireSourceType(config.type),
     ...optionalString(config.apiKey, 'apiKey'),
     ...optionalString(config.networkCode, 'networkCode'),
-    ...optionalAdTagParameters(config.adTagParameters),
+    ...optionalStringRecord(config.adTagParameters, 'adTagParameters'),
   };
-}
-
-function assertRecord(value: unknown, name: string): Record<string, unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`${name} must be an object.`);
-  }
-  return value as Record<string, unknown>;
-}
-
-function requireNonEmptyString(value: unknown, field: string): string {
-  if (typeof value !== 'string' || value.trim().length === 0) {
-    throw new Error(`GoogleDai source config requires a non-empty ${field}.`);
-  }
-  return value;
-}
-
-function requireSourceType(value: unknown): GoogleDaiSourceType {
-  if (value === GoogleDaiSourceType.DASH || value === GoogleDaiSourceType.HLS) {
-    return value;
-  }
-  throw new Error('GoogleDai source config type must be either dash or hls.');
-}
-
-function optionalString<T extends 'apiKey' | 'networkCode'>(
-  value: unknown,
-  field: T
-): Partial<Record<T, string>> {
-  if (value == null) {
-    return {};
-  }
-  if (typeof value !== 'string') {
-    throw new Error(`GoogleDai source config ${field} must be a string.`);
-  }
-  return { [field]: value } as Record<T, string>;
-}
-
-function optionalAdTagParameters(value: unknown): {
-  adTagParameters?: Record<string, string>;
-} {
-  if (value == null) {
-    return {};
-  }
-  const parameters = assertRecord(value, 'GoogleDai adTagParameters');
-  const entries = Object.entries(parameters).map(([key, parameterValue]) => {
-    if (typeof parameterValue !== 'string') {
-      throw new Error(
-        'GoogleDai adTagParameters keys and values must be strings.'
-      );
-    }
-    return [key, parameterValue];
-  });
-  return { adTagParameters: Object.fromEntries(entries) };
 }

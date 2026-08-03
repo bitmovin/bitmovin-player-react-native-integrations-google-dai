@@ -7,7 +7,7 @@
   "scripts": {
     "build": "expo-module build",
     "clean": "expo-module clean",
-    "lint": "eslint --quiet src --ext .ts",
+    "lint": "eslint --quiet src tests --ext .ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
@@ -17,7 +17,8 @@
     "example:android": "yarn --cwd example android",
     "example:ios": "yarn --cwd example ios",
     "example:lint": "yarn --cwd example lint",
-    "example:typecheck": "yarn --cwd example typecheck"
+    "example:typecheck": "yarn --cwd example typecheck",
+    "test": "rm -rf .test-build && tsc -p tsconfig.test.json && node --test .test-build/tests/*.test.js"
   },
   "keywords": [
     "react-native",
@@ -63,7 +64,9 @@
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
+    "@types/node": "^24.10.1",
     "@types/react": "~19.1.10",
+    "bitmovin-player-react-native": "1.22.0",
     "eslint": "^8.57.0",
     "eslint-config-expo": "~10.0.0",
     "eslint-config-prettier": "^9.1.0",
