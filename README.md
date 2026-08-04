@@ -24,7 +24,7 @@ The companion package is an Expo module and does not require a companion Expo co
 - Expo crypto peer: `expo-crypto@>=14.0.0` (used for generated Google DAI native IDs)
 - Android native DAI artifact: `com.bitmovin.player.integration:google-dai:0.1.0-alpha.1`
 - Minimum Android Bitmovin Player SDK version: `3.159.0+jason`.
-- iOS native DAI package: `bitmovin-player-ios-integrations-google-dai@0.1.0-a.2` via React Native Swift Package Manager support.
+- iOS native DAI package: `bitmovin-player-ios-integrations-google-dai@0.1.0` via React Native Swift Package Manager support.
 - iOS: live HLS streams only. DASH is Android-only; ad tag parameters are not supported by the native iOS integration yet.
 - Android repository:
 
