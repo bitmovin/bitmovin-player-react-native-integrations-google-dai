@@ -140,11 +140,3 @@ cp .env.example .env
 yarn prebuild
 yarn android
 ```
-
-## iOS status
-
-The iOS Expo module attaches the native Bitmovin Google DAI module to the existing React Native Bitmovin Player instance during `withGoogleDai()` initialization. The native iOS integration currently supports live HLS sources. The following iOS SDK-owner confirmations are still required before broader feature parity:
-
-- source config customization hook;
-- ad tag parameter support;
-- regular ad/SSAI event forwarding behavior.
