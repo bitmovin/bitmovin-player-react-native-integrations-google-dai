@@ -2,31 +2,26 @@
 
 Optional companion package for Google IMA Dynamic Ad Insertion (DAI/SSAI) support in `bitmovin-player-react-native`.
 
-## Contributions to this project
-
-As an open-source project, we welcome changes, updates, and fixes from the community. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-## License
-
-This project is available under the [MIT License](LICENSE).
-
 ## Installation
 
 ```sh
 yarn add bitmovin-player-react-native @bitmovin/player-react-native-google-dai
 ```
 
-The companion package is an Expo module and does not require a companion Expo config plugin for the MVP. Installing the package is enough for Expo autolinking.
+The package is an Expo module and requires no Expo config plugin; Expo autolinking handles installation.
 
 ## Compatibility
 
-- Peer package: `bitmovin-player-react-native@>=1.22.0`
-- Expo crypto peer: `expo-crypto@>=14.0.0` (used for generated Google DAI native IDs)
-- Android native DAI artifact: `com.bitmovin.player.integration:google-dai:0.1.0`
-- Minimum Android Bitmovin Player SDK version: `3.159.0+jason`.
-- iOS native DAI package: `bitmovin-player-ios-integrations-google-dai@0.1.0` via React Native Swift Package Manager support.
-- iOS: live HLS streams only. DASH is Android-only; ad tag parameters are not supported by the native iOS integration yet.
-- Android repository:
+| Component                      | Requirement     |
+| ------------------------------ | --------------- |
+| Bitmovin Player React Native   | `>=1.22.0`      |
+| Expo                           | `>=54.0.0`      |
+| React Native                   | `>=0.75.0`      |
+| Android Google DAI integration | `0.1.0`         |
+| Android Bitmovin Player SDK    | `3.159.0+jason` |
+| iOS Google DAI integration     | `0.1.0`         |
+
+Android consumers must include the Bitmovin public releases repository:
 
 ```kotlin
 repositories {
@@ -36,7 +31,7 @@ repositories {
 }
 ```
 
-Native DAI artifacts are pinned by this package and are intentionally not consumer-overridable in the MVP.
+Native DAI versions are pinned by this package and cannot be overridden.
 
 ## Usage
 
@@ -89,18 +84,9 @@ export function GoogleDaiPlayer() {
 }
 ```
 
-## API
+`withGoogleDai(player)` preserves the player identity and returns `Player & GoogleDaiCapability`. The native DAI adapter is initialized lazily by `player.googleDai.load()`. Call `load()` after `PlayerView.onPlayerViewReady`; it does not initialize the core player.
 
-```ts
-const player = withGoogleDai(new Player(config));
-await player.googleDai.load(liveDaiConfig);
-player.play();
-player.destroy();
-```
-
-`withGoogleDai(player)` preserves the original player object identity, attaches a read-only non-enumerable `googleDai` property to that player instance, and returns `Player & GoogleDaiCapability`. It does not modify `Player.prototype`. Repeated calls with the same player return the same `GoogleDaiApi` instance. `player.googleDai.load()` lazily creates the native DAI adapter before loading the source config. It does not initialize the core `Player`; mount `PlayerView` and call `load()` from `PlayerView.onPlayerViewReady` so the native view and ad UI container are attached.
-
-### Source config
+## Source config
 
 ```ts
 export enum GoogleDaiSourceType {
@@ -124,7 +110,7 @@ export interface GoogleDaiLiveSourceConfig {
 }
 ```
 
-The MVP supports live DAI streams only. VOD support is intentionally rejected until the native source-config contract is added. DASH sources are Android-only. `adTagParameters` are Android-only until the native iOS integration adds support.
+Only live DAI streams are supported; VOD configurations are rejected. iOS supports HLS only. DASH and `adTagParameters` are Android-only.
 
 > Note: Seeking or time-shifting back into an already-played Google DAI ad segment does not replay IMA ad lifecycle events. The media may play again, but ad events are emitted only according to Google IMA DAI tracking state.
 
@@ -139,4 +125,10 @@ cp .env.example .env
 # edit .env and set BITMOVIN_PLAYER_LICENSE_KEY
 yarn prebuild
 yarn android
+# or
+yarn ios
 ```
+
+## Contributing and license
+
+Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). This project is available under the [MIT License](LICENSE).
