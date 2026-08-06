@@ -78,7 +78,7 @@ repositories {
   }
 }
 
-def bitmovinPlayerSdkVersion = '3.159.0+jason'
+def bitmovinPlayerSdkVersion = '3.161.0+jason'
 
 dependencies {
   // Bridge project dependency (needed for PlayerRegistry)
@@ -87,5 +87,5 @@ dependencies {
   // Minimum supported native Player SDK version for Google DAI.
   implementation("com.bitmovin.player:player:$bitmovinPlayerSdkVersion")
   implementation("com.bitmovin.player:player-media-session:$bitmovinPlayerSdkVersion")
-  implementation("com.bitmovin.player.integration:google-dai:0.1.0")
+  implementation("com.bitmovin.player.integration:google-dai:0.2.0")
 }
