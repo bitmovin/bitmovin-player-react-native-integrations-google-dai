@@ -1,5 +1,8 @@
 package com.bitmovin.player.reactnative.googledai
 
+import android.util.Log
+import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.integration.googledai.api.GoogleDaiSourceConfig
 import com.bitmovin.player.integration.googledai.api.GoogleDaiSourceType
 import com.bitmovin.player.integration.googledai.api.googleDai
@@ -11,13 +14,18 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.concurrent.ConcurrentHashMap
 
+private const val TAG = "GoogleDaiModule"
+
 class GoogleDaiModule : Module() {
     private val playerIdsByGoogleDaiId = ConcurrentHashMap<NativeId, NativeId>()
+    private val playerDestroyListeners = ConcurrentHashMap<NativeId, PlayerDestroyListener>()
 
     override fun definition() = ModuleDefinition {
         Name("GoogleDaiModule")
 
         OnDestroy {
+            playerDestroyListeners.values.forEach(PlayerDestroyListener::remove)
+            playerDestroyListeners.clear()
             playerIdsByGoogleDaiId.clear()
         }
 
@@ -42,7 +50,7 @@ class GoogleDaiModule : Module() {
         }.runOnQueue(Queues.MAIN)
 
         AsyncFunction("destroy") { googleDaiId: NativeId ->
-            playerIdsByGoogleDaiId.remove(googleDaiId.nonEmptyNativeId("googleDaiId"))
+            unregister(googleDaiId.nonEmptyNativeId("googleDaiId"))
         }.runOnQueue(Queues.MAIN)
     }
 
@@ -57,10 +65,35 @@ class GoogleDaiModule : Module() {
             throw GoogleDaiException.DuplicateAdapterId(validatedGoogleDaiId)
         }
 
-        if (PlayerRegistry.getPlayer(validatedPlayerId) == null) {
-            throw GoogleDaiException.PlayerUnavailable(validatedPlayerId)
+        val player = PlayerRegistry.getPlayer(validatedPlayerId)
+            ?: throw GoogleDaiException.PlayerUnavailable(validatedPlayerId)
+        val destroyListener: (PlayerEvent.Destroy) -> Unit = {
+            unregister(validatedGoogleDaiId)
         }
+        player.on(PlayerEvent.Destroy::class, destroyListener)
+        playerDestroyListeners[validatedGoogleDaiId] = PlayerDestroyListener(
+            player,
+            destroyListener
+        )
         playerIdsByGoogleDaiId[validatedGoogleDaiId] = validatedPlayerId
+    }
+
+    private fun unregister(googleDaiId: NativeId) {
+        playerIdsByGoogleDaiId.remove(googleDaiId)
+        playerDestroyListeners.remove(googleDaiId)?.remove()
+    }
+}
+
+private class PlayerDestroyListener(
+    private val player: Player,
+    private val listener: (PlayerEvent.Destroy) -> Unit
+) {
+    fun remove() {
+        try {
+            player.off(PlayerEvent.Destroy::class, listener)
+        } catch (error: Exception) {
+            Log.w(TAG, "Could not remove Player destroy listener.", error)
+        }
     }
 }
 

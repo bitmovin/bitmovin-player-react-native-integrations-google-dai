@@ -1,15 +1,19 @@
 import BitmovinGoogleDAIPlayer
 import BitmovinPlayer
 import ExpoModulesCore
+import Foundation
 import RNBitmovinPlayer
 
 public class GoogleDaiModule: Module {
     private var playerIdsByGoogleDaiId: Registry<NativeId> = [:]
+    private var playerDestroyObservers: Registry<PlayerDestroyObserver> = [:]
 
     public func definition() -> ModuleDefinition {
         Name("GoogleDaiModule")
 
         OnDestroy { [weak self] in
+            self?.playerDestroyObservers.values.forEach { $0.remove() }
+            self?.playerDestroyObservers.removeAll()
             self?.playerIdsByGoogleDaiId.removeAll()
         }
 
@@ -24,6 +28,7 @@ public class GoogleDaiModule: Module {
             player._modules._registerModule { @MainActor in
                 _InternalGoogleDaiPlayerModuleFactory.create(player: $0)
             }
+            self?.observePlayerDestroy(googleDaiId: googleDaiId, player: player)
             self?.playerIdsByGoogleDaiId[googleDaiId] = playerId
         }.runOnQueue(.main)
 
@@ -41,11 +46,45 @@ public class GoogleDaiModule: Module {
         }.runOnQueue(.main)
 
         AsyncFunction("destroy") { @MainActor [weak self] (googleDaiId: NativeId) in
-            guard let playerId = self?.playerIdsByGoogleDaiId.removeValue(forKey: googleDaiId) else {
+            guard let playerId = self?.unregister(googleDaiId: googleDaiId) else {
                 return
             }
             PlayerRegistry.getPlayer(nativeId: playerId)?.googleDai.destroy()
         }.runOnQueue(.main)
+    }
+
+    private func observePlayerDestroy(googleDaiId: NativeId, player: Player) {
+        playerDestroyObservers[googleDaiId]?.remove()
+        let observer = PlayerDestroyObserver(player: player) { [weak self] in
+            self?.unregister(googleDaiId: googleDaiId)
+        }
+        player.add(listener: observer)
+        playerDestroyObservers[googleDaiId] = observer
+    }
+
+    @discardableResult
+    private func unregister(googleDaiId: NativeId) -> NativeId? {
+        playerDestroyObservers.removeValue(forKey: googleDaiId)?.remove()
+        return playerIdsByGoogleDaiId.removeValue(forKey: googleDaiId)
+    }
+}
+
+private final class PlayerDestroyObserver: NSObject, PlayerListener {
+    private weak var player: Player?
+    private let onPlayerDestroy: () -> Void
+
+    init(player: Player, onPlayerDestroy: @escaping () -> Void) {
+        self.player = player
+        self.onPlayerDestroy = onPlayerDestroy
+    }
+
+    func remove() {
+        player?.remove(listener: self)
+        player = nil
+    }
+
+    func onDestroy(_ event: DestroyEvent, player: Player) {
+        onPlayerDestroy()
     }
 }
 
