@@ -1,6 +1,5 @@
 package com.bitmovin.player.reactnative.googledai
 
-import android.util.Log
 import com.bitmovin.player.api.Player
 import com.bitmovin.player.api.event.PlayerEvent
 import com.bitmovin.player.integration.googledai.api.GoogleDaiSourceConfig
@@ -13,8 +12,6 @@ import expo.modules.kotlin.functions.Queues
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.util.concurrent.ConcurrentHashMap
-
-private const val TAG = "GoogleDaiModule"
 
 class GoogleDaiModule : Module() {
     private val playerIdsByGoogleDaiId = ConcurrentHashMap<NativeId, NativeId>()
@@ -68,7 +65,8 @@ class GoogleDaiModule : Module() {
         val player = PlayerRegistry.getPlayer(validatedPlayerId)
             ?: throw GoogleDaiException.PlayerUnavailable(validatedPlayerId)
         val destroyListener: (PlayerEvent.Destroy) -> Unit = {
-            unregister(validatedGoogleDaiId)
+            playerIdsByGoogleDaiId.remove(validatedGoogleDaiId)
+            playerDestroyListeners.remove(validatedGoogleDaiId)
         }
         player.on(PlayerEvent.Destroy::class, destroyListener)
         playerDestroyListeners[validatedGoogleDaiId] = PlayerDestroyListener(
@@ -79,8 +77,9 @@ class GoogleDaiModule : Module() {
     }
 
     private fun unregister(googleDaiId: NativeId) {
+        playerDestroyListeners[googleDaiId]?.remove()
+        playerDestroyListeners.remove(googleDaiId)
         playerIdsByGoogleDaiId.remove(googleDaiId)
-        playerDestroyListeners.remove(googleDaiId)?.remove()
     }
 }
 
@@ -89,11 +88,7 @@ private class PlayerDestroyListener(
     private val listener: (PlayerEvent.Destroy) -> Unit
 ) {
     fun remove() {
-        try {
-            player.off(PlayerEvent.Destroy::class, listener)
-        } catch (error: Exception) {
-            Log.w(TAG, "Could not remove Player destroy listener.", error)
-        }
+        player.off(PlayerEvent.Destroy::class, listener)
     }
 }
 
