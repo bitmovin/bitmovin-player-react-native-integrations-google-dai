@@ -12,14 +12,11 @@ The package is an Expo module and requires no Expo config plugin; Expo autolinki
 
 ## Compatibility
 
-| Component                      | Requirement     |
-| ------------------------------ | --------------- |
-| Bitmovin Player React Native   | `>=1.22.0`      |
-| Expo                           | `>=54.0.0`      |
-| React Native                   | `>=0.75.0`      |
-| Android Google DAI integration | `0.1.0`         |
-| Android Bitmovin Player SDK    | `3.159.0+jason` |
-| iOS Google DAI integration     | `0.1.0`         |
+| Component                    | Requirement |
+| ---------------------------- | ----------- |
+| Bitmovin Player React Native | `>=1.22.0`  |
+| Expo                         | `>=54.0.0`  |
+| React Native                 | `>=0.75.0`  |
 
 Android consumers must include the Bitmovin public releases repository:
 
@@ -31,7 +28,7 @@ repositories {
 }
 ```
 
-Native DAI versions are pinned by this package and cannot be overridden.
+Compatible native Google DAI integrations and Android Player SDK versions are pinned by each package release and should not be overridden.
 
 ## Usage
 
