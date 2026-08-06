@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     paths:
-      - '.github/workflows/ci-typescript.yml'
+      - '.github/workflows/ci.yml'
       - '.github/actions/**'
       - 'android/**'
       - 'build/**'
@@ -19,7 +19,7 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/ci-typescript.yml'
+      - '.github/workflows/ci.yml'
       - '.github/actions/**'
       - 'android/**'
       - 'build/**'
