@@ -53,6 +53,7 @@ public class GoogleDaiModule: Module {
         }.runOnQueue(.main)
     }
 
+    @MainActor
     private func observePlayerDestroy(googleDaiId: NativeId, player: Player) {
         playerDestroyObservers[googleDaiId]?.remove()
         let observer = PlayerDestroyObserver(player: player) { [weak self] in
@@ -62,6 +63,7 @@ public class GoogleDaiModule: Module {
         playerDestroyObservers[googleDaiId] = observer
     }
 
+    @MainActor
     @discardableResult
     private func unregister(googleDaiId: NativeId) -> NativeId? {
         playerDestroyObservers.removeValue(forKey: googleDaiId)?.remove()
@@ -71,9 +73,9 @@ public class GoogleDaiModule: Module {
 
 private final class PlayerDestroyObserver: NSObject, PlayerListener {
     private weak var player: Player?
-    private let onPlayerDestroy: () -> Void
+    private let onPlayerDestroy: @MainActor () -> Void
 
-    init(player: Player, onPlayerDestroy: @escaping () -> Void) {
+    init(player: Player, onPlayerDestroy: @escaping @MainActor () -> Void) {
         self.player = player
         self.onPlayerDestroy = onPlayerDestroy
     }
@@ -84,7 +86,9 @@ private final class PlayerDestroyObserver: NSObject, PlayerListener {
     }
 
     func onDestroy(_ event: DestroyEvent, player: Player) {
-        onPlayerDestroy()
+        Task { @MainActor in
+            onPlayerDestroy()
+        }
     }
 }
 

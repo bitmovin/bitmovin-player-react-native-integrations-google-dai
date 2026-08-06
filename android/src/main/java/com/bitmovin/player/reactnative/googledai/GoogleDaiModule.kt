@@ -65,8 +65,7 @@ class GoogleDaiModule : Module() {
         val player = PlayerRegistry.getPlayer(validatedPlayerId)
             ?: throw GoogleDaiException.PlayerUnavailable(validatedPlayerId)
         val destroyListener: (PlayerEvent.Destroy) -> Unit = {
-            playerIdsByGoogleDaiId.remove(validatedGoogleDaiId)
-            playerDestroyListeners.remove(validatedGoogleDaiId)
+            unregister(validatedGoogleDaiId)
         }
         player.on(PlayerEvent.Destroy::class, destroyListener)
         playerDestroyListeners[validatedGoogleDaiId] = PlayerDestroyListener(
@@ -77,9 +76,8 @@ class GoogleDaiModule : Module() {
     }
 
     private fun unregister(googleDaiId: NativeId) {
-        playerDestroyListeners[googleDaiId]?.remove()
-        playerDestroyListeners.remove(googleDaiId)
         playerIdsByGoogleDaiId.remove(googleDaiId)
+        playerDestroyListeners.remove(googleDaiId)?.remove()
     }
 }
 
