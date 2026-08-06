@@ -73,7 +73,7 @@ private fun NativeId.nonEmptyNativeId(field: String): NativeId {
 
 private fun Map<String, Any?>.toGoogleDaiSourceConfig(): GoogleDaiSourceConfig {
     val kind = this["kind"] as? String ?: throw GoogleDaiException.InvalidSourceConfig(
-        "kind must be 'live'",
+        "kind must be 'live'"
     )
     if (kind != "live") {
         throw GoogleDaiException.InvalidSourceConfig("unsupported kind '$kind'")
@@ -83,13 +83,13 @@ private fun Map<String, Any?>.toGoogleDaiSourceConfig(): GoogleDaiSourceConfig {
         type = sourceType(),
         apiKey = optionalString("apiKey"),
         networkCode = optionalString("networkCode"),
-        adTagParameters = adTagParameters(),
+        adTagParameters = adTagParameters()
     )
 }
 
 private fun Map<String, Any?>.nonEmptyString(key: String): String {
     val value = this[key] as? String ?: throw GoogleDaiException.InvalidSourceConfig(
-        "$key must be a non-empty string",
+        "$key must be a non-empty string"
     )
     if (value.isBlank()) {
         throw GoogleDaiException.InvalidSourceConfig("$key must be a non-empty string")
@@ -100,7 +100,7 @@ private fun Map<String, Any?>.nonEmptyString(key: String): String {
 private fun Map<String, Any?>.optionalString(key: String): String? {
     val value = this[key] ?: return null
     return value as? String ?: throw GoogleDaiException.InvalidSourceConfig(
-        "$key must be a string when provided",
+        "$key must be a string when provided"
     )
 }
 
@@ -114,12 +114,12 @@ private fun Map<String, Any?>.sourceType(): GoogleDaiSourceType =
 private fun Map<String, Any?>.adTagParameters(): Map<String, String> {
     val rawValue = this["adTagParameters"] ?: return emptyMap()
     val rawMap = rawValue as? Map<*, *> ?: throw GoogleDaiException.InvalidSourceConfig(
-        "adTagParameters must be an object with string keys and values",
+        "adTagParameters must be an object with string keys and values"
     )
     return rawMap.entries.associate { (key, value) ->
         if (key !is String || value !is String) {
             throw GoogleDaiException.InvalidSourceConfig(
-                "adTagParameters must contain only string keys and values",
+                "adTagParameters must contain only string keys and values"
             )
         }
         key to value
@@ -128,26 +128,26 @@ private fun Map<String, Any?>.adTagParameters(): Map<String, String> {
 
 sealed class GoogleDaiException(message: String) : CodedException(message) {
     class PlayerUnavailable(playerId: NativeId) : GoogleDaiException(
-        "Player '$playerId' is not initialized or has already been destroyed.",
+        "Player '$playerId' is not initialized or has already been destroyed."
     )
 
     class DuplicateAdapterId(googleDaiId: NativeId) : GoogleDaiException(
-        "GoogleDai '$googleDaiId' is already initialized for another player.",
+        "GoogleDai '$googleDaiId' is already initialized for another player."
     )
 
     class UnknownAdapter(googleDaiId: NativeId) : GoogleDaiException(
-        "GoogleDai '$googleDaiId' is not initialized or has already been destroyed.",
+        "GoogleDai '$googleDaiId' is not initialized or has already been destroyed."
     )
 
     class InvalidSourceConfig(reason: String) : GoogleDaiException(
-        "Invalid Google DAI source config: $reason.",
+        "Invalid Google DAI source config: $reason."
     )
 
     class InvalidNativeId(field: String) : GoogleDaiException(
-        "$field must be a non-empty string.",
+        "$field must be a non-empty string."
     )
 
     class NativeLoadFailed(reason: String) : GoogleDaiException(
-        "Could not load Google DAI source config: $reason.",
+        "Could not load Google DAI source config: $reason."
     )
 }
