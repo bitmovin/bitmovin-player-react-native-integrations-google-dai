@@ -16,7 +16,7 @@ cp .env.example .env
 ```sh
 yarn prebuild
 yarn android
-# or, once the iOS DAI implementation exists:
+# or
 yarn ios
 ```
 
@@ -26,5 +26,3 @@ The sample uses Google's public live DAI HLS test stream:
 - network code: `21775744923`
 
 Playback starts automatically from `PlayerView.onPlayerViewReady`. Player and ad events are logged to Metro.
-
-> iOS currently uses a minimal placeholder module. `initialize()` and `load()` reject with `IOS_GOOGLE_DAI_NOT_IMPLEMENTED`, and no native iOS DAI/player pods are linked until the iOS DAI SDK contract is confirmed.
