@@ -1,10 +1,14 @@
-name: CI (TypeScript)
+name: CI
 
 on:
   pull_request:
     paths:
       - '.github/workflows/ci-typescript.yml'
       - '.github/actions/**'
+      - 'android/**'
+      - 'build/**'
+      - 'example/**'
+      - 'ios/**'
       - 'src/**'
       - 'package.json'
       - 'yarn.lock'
@@ -17,6 +21,10 @@ on:
     paths:
       - '.github/workflows/ci-typescript.yml'
       - '.github/actions/**'
+      - 'android/**'
+      - 'build/**'
+      - 'example/**'
+      - 'ios/**'
       - 'src/**'
       - 'package.json'
       - 'yarn.lock'
@@ -29,7 +37,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-typescript-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -45,8 +53,13 @@ jobs:
         with:
           node: true
 
+      - name: Install example dependencies
+        run: yarn --cwd example install --frozen-lockfile
+
       - name: Lint TypeScript
-        run: yarn lint
+        run: |
+          yarn lint
+          yarn example:lint
 
   build-typescript:
     name: Build
@@ -60,11 +73,88 @@ jobs:
         with:
           node: true
 
+      - name: Install example dependencies
+        run: yarn --cwd example install --frozen-lockfile
+
       - name: Typecheck TypeScript
-        run: yarn typecheck
+        run: |
+          yarn typecheck
+          yarn example:typecheck
 
       - name: Build TypeScript
         run: yarn build
 
+      - name: Verify generated build
+        run: git diff --exit-code -- build
+
       - name: Verify package contents
         run: npm pack --dry-run --ignore-scripts --json
+
+  android:
+    name: Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+
+      - name: Install example dependencies
+        run: yarn --cwd example install --frozen-lockfile
+
+      - name: Prebuild Android example
+        run: yarn example:prebuild --platform android --no-install
+        env:
+          BITMOVIN_PLAYER_LICENSE_KEY: ci-placeholder
+
+      - name: Check Kotlin style and compile
+        working-directory: example/android
+        run: |
+          ./gradlew \
+            :bitmovin-player-react-native-google-dai:ktlintCheck \
+            :bitmovin-player-react-native-google-dai:compileDebugKotlin
+
+  ios:
+    name: iOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          node: true
+
+      - name: Install example dependencies
+        run: yarn --cwd example install --frozen-lockfile
+
+      - name: Prebuild iOS example
+        run: yarn example:prebuild --platform ios --no-install
+        env:
+          BITMOVIN_PLAYER_LICENSE_KEY: ci-placeholder
+
+      - name: Install CocoaPods
+        working-directory: example/ios
+        run: pod install
+
+      - name: Compile iOS module
+        working-directory: example/ios
+        run: |
+          xcodebuild \
+            -workspace BitmovinGoogleDAIExample.xcworkspace \
+            -scheme RNBitmovinPlayerGoogleDai \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
