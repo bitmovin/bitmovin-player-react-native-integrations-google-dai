@@ -759,7 +759,7 @@
     "@babel/helper-validator-identifier" "^7.29.7"
 
 "@bitmovin/player-react-native-google-dai@file:..":
-  version "0.0.1"
+  version "0.1.0"
   dependencies:
     expo-crypto "~15.0.9"
     expo-modules-core "~3.0.30"

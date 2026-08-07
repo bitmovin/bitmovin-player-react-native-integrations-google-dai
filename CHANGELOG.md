@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-08-06
+
 ### Added
 
 - Initial Google IMA DAI companion package.
@@ -13,3 +15,4 @@
 ### Fixed
 
 - Remove native Google DAI bridge registrations when their player is destroyed.
+- Restore Android Google DAI compatibility with the current Android Player SDK.
