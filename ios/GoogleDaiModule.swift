@@ -99,12 +99,7 @@ private func googleDaiSource(from config: [String: Any]) throws -> GoogleDaiSour
             "Google DAI on iOS supports live HLS sources only."
         )
     }
-    if let adTagParameters = config["adTagParameters"] as? [String: Any], !adTagParameters.isEmpty {
-        throw googleDaiException(
-            "GOOGLE_DAI_UNSUPPORTED_SOURCE_CONFIG",
-            "Google DAI adTagParameters are not supported on iOS yet."
-        )
-    }
+    let adTagParameters = try parseAdTagParameters(from: config["adTagParameters"])
     guard let assetKey = config["assetKey"] as? String else {
         throw googleDaiException(
             "GOOGLE_DAI_INVALID_SOURCE_CONFIG",
@@ -115,8 +110,32 @@ private func googleDaiSource(from config: [String: Any]) throws -> GoogleDaiSour
     return .live(
         assetKey: assetKey,
         apiKey: config["apiKey"] as? String,
-        networkCode: config["networkCode"] as? String
+        networkCode: config["networkCode"] as? String,
+        adTagParameters: adTagParameters
     )
+}
+
+private func parseAdTagParameters(from value: Any?) throws -> [String: String] {
+    guard let value else {
+        return [:]
+    }
+    guard let rawMap = value as? [String: Any] else {
+        throw googleDaiException(
+            "GOOGLE_DAI_INVALID_SOURCE_CONFIG",
+            "Google DAI adTagParameters must be an object with string keys and values."
+        )
+    }
+    var parsed: [String: String] = [:]
+    for (key, rawValue) in rawMap {
+        guard let stringValue = rawValue as? String else {
+            throw googleDaiException(
+                "GOOGLE_DAI_INVALID_SOURCE_CONFIG",
+                "Google DAI adTagParameters must contain only string keys and values."
+            )
+        }
+        parsed[key] = stringValue
+    }
+    return parsed
 }
 
 private func googleDaiException(_ name: String, _ description: String) -> Exception {
