@@ -28,7 +28,7 @@ repositories {
 }
 ```
 
-Android release builds require core library desugaring for the Google IMA dependency. Expo apps using the `bitmovin-player-react-native` config plugin get this automatically; manual/native setups or Kotlin DSL Gradle files must configure it in the app:
+Android release builds require core library desugaring for the Google IMA dependency. Expo apps using the `bitmovin-player-react-native` config plugin get this automatically; manual/native setups or Kotlin DSL Gradle files must configure it in the app module (`android/app/build.gradle(.kts)`):
 
 ```kotlin
 android {
