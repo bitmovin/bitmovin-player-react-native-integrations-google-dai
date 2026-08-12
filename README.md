@@ -8,7 +8,7 @@ Optional companion package for Google IMA Dynamic Ad Insertion (DAI/SSAI) suppor
 yarn add bitmovin-player-react-native @bitmovin/player-react-native-google-dai
 ```
 
-The package is an Expo module and requires no Expo config plugin; Expo autolinking handles installation.
+The package is an Expo module; Expo autolinking handles native installation.
 
 ## Compatibility
 
@@ -25,6 +25,20 @@ repositories {
     maven {
         url = uri("https://artifacts.bitmovin.com/artifactory/public-releases")
     }
+}
+```
+
+Android release builds also require core library desugaring for the Google IMA dependency:
+
+```kotlin
+android {
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
 ```
 
