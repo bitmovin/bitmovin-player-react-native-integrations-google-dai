@@ -100,14 +100,12 @@ export interface GoogleDaiLiveSourceConfig {
   type: GoogleDaiSourceType;
   apiKey?: string;
   networkCode?: string;
-  /**
-   * @platform Android
-   */
+  /** Forwarded to the Google IMA DAI stream request on iOS and Android. */
   adTagParameters?: Record<string, string>;
 }
 ```
 
-Only live DAI streams are supported; VOD configurations are rejected. iOS supports HLS only. DASH and `adTagParameters` are Android-only.
+Only live DAI streams are supported; VOD configurations are rejected. iOS supports HLS only; DASH is Android-only.
 
 > Note: Seeking or time-shifting back into an already-played Google DAI ad segment does not replay IMA ad lifecycle events. The media may play again, but ad events are emitted only according to Google IMA DAI tracking state.
 
