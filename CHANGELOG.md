@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.0]
+
 ### Fixed
 
 - iOS: Forward Google DAI `adTagParameters` to the native stream request
