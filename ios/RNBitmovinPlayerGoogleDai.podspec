@@ -23,17 +23,7 @@ Pod::Spec.new do |s|
 
   s.dependency 'ExpoModulesCore'
   s.dependency 'RNBitmovinPlayer'
-
-  unless respond_to?(:spm_dependency, true)
-    raise 'The iOS Google DAI integration requires React Native >=0.75.0 because it uses Swift Package Manager dependencies.'
-  end
-
-  spm_dependency(
-    s,
-    url: 'https://github.com/bitmovin/bitmovin-player-ios-integrations-google-dai.git',
-    requirement: { kind: 'exactVersion', version: '0.1.0' },
-    products: ['BitmovinGoogleDAIPlayer']
-  )
+  s.dependency 'BitmovinGoogleDAIPlayer', '0.2.0'
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES'
