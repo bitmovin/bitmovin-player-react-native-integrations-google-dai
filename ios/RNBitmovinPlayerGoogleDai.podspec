@@ -23,7 +23,7 @@ Pod::Spec.new do |s|
 
   s.dependency 'ExpoModulesCore'
   s.dependency 'RNBitmovinPlayer'
-  s.dependency 'BitmovinGoogleDAIPlayer', '0.2.0'
+  s.dependency 'BitmovinGoogleDAIPlayer', '0.2.1'
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES'

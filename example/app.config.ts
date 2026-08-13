@@ -46,7 +46,7 @@ const config: ExpoConfig = {
             {
               name: 'BitmovinGoogleDAIPlayer',
               git: 'https://github.com/bitmovin/bitmovin-player-ios-integrations-google-dai.git',
-              tag: '0.2.0',
+              tag: '0.2.1',
             },
           ],
         },
