@@ -56,7 +56,7 @@ Do not add the pod directly to the generated `ios/Podfile`; Expo prebuild can re
 
 | Component                    | Requirement |
 | ---------------------------- | ----------- |
-| Bitmovin Player React Native | `>=1.22.0`  |
+| Bitmovin Player React Native | `>=1.25.0`  |
 | Expo                         | `>=54.0.0`  |
 | React Native                 | `>=0.75.0`  |
 
