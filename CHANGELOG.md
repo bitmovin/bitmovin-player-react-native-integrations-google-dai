@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.3.0]
+
 ### Changed
 
 - iOS: Resolve native Google DAI `0.2.1` through CocoaPods and require Bitmovin Player React Native `1.25.0` or newer
