@@ -737,7 +737,20 @@
     "@babel/parser" "^7.29.7"
     "@babel/types" "^7.29.7"
 
-"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3", "@babel/traverse@^7.25.3", "@babel/traverse@^7.29.0", "@babel/traverse@^7.29.7":
+"@babel/traverse--for-generate-function-map@npm:@babel/traverse@^7.25.3":
+  version "7.29.7"
+  resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.29.7.tgz#c47b07a41b95da0907d026b5dd894d98de7d2f2d"
+  integrity sha512-EhlfNQtZ+NK22w5BM61ciuiq1m58ed33Wr1Xan//ZRTy6hgjnwyCffRYwzsGXdASJSUJ1guZILsErh1eQcl+zw==
+  dependencies:
+    "@babel/code-frame" "^7.29.7"
+    "@babel/generator" "^7.29.7"
+    "@babel/helper-globals" "^7.29.7"
+    "@babel/parser" "^7.29.7"
+    "@babel/template" "^7.29.7"
+    "@babel/types" "^7.29.7"
+    debug "^4.3.1"
+
+"@babel/traverse@^7.25.3", "@babel/traverse@^7.29.0", "@babel/traverse@^7.29.7":
   version "7.29.7"
   resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.29.7.tgz#c47b07a41b95da0907d026b5dd894d98de7d2f2d"
   integrity sha512-EhlfNQtZ+NK22w5BM61ciuiq1m58ed33Wr1Xan//ZRTy6hgjnwyCffRYwzsGXdASJSUJ1guZILsErh1eQcl+zw==
@@ -759,7 +772,7 @@
     "@babel/helper-validator-identifier" "^7.29.7"
 
 "@bitmovin/player-react-native-google-dai@file:..":
-  version "0.1.0"
+  version "0.2.0"
   dependencies:
     expo-crypto "~15.0.9"
     expo-modules-core "~3.0.30"
@@ -2364,10 +2377,10 @@ big-integer@1.6.x:
   resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.52.tgz#60a887f3047614a8e1bffe5d7173490a97dc8c85"
   integrity sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==
 
-bitmovin-player-react-native@^1.22.0:
-  version "1.22.0"
-  resolved "https://registry.yarnpkg.com/bitmovin-player-react-native/-/bitmovin-player-react-native-1.22.0.tgz#51dae33f9c0989092f1812cb92488fbd1f990b1e"
-  integrity sha512-mtEpgVrQj/A4taO4Pci0CoKe+tX3tjGp5Lab2pclPL51XqK7qug8nXe3W0gAhtQ1pPUTT/QtffjDWq96DsfBeg==
+bitmovin-player-react-native@^1.25.0:
+  version "1.25.0"
+  resolved "https://registry.yarnpkg.com/bitmovin-player-react-native/-/bitmovin-player-react-native-1.25.0.tgz#fbbd91538960dc0327427b4df634befb8648ce10"
+  integrity sha512-VfcmAwcwy69sMmB/uTa/wAM+OvsqrkdMjzmvxHNA+stELNutWPUnz1+l7TPhVf/Cu6nU0QeCqnuWE3fsEz9lZw==
   dependencies:
     expo-crypto "~15.0.9"
     expo-keep-awake "~15.0.8"

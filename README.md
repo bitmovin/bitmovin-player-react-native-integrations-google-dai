@@ -10,11 +10,53 @@ yarn add bitmovin-player-react-native @bitmovin/player-react-native-google-dai
 
 The package is an Expo module; Expo autolinking handles native installation.
 
+### iOS native dependency
+
+The native Google DAI integration is distributed as a tagged CocoaPod outside of CocoaPods Trunk. Expo autolinking discovers this React Native module, but it cannot determine the Git source of that native dependency. Therefore, iOS applications must declare `BitmovinGoogleDAIPlayer` as an extra pod through [`expo-build-properties`](https://docs.expo.dev/versions/latest/sdk/build-properties/).
+
+Install the config plugin:
+
+```sh
+yarn expo install expo-build-properties
+```
+
+Then add the extra pod to the `plugins` section of `app.config.ts`:
+
+```ts
+const config = {
+  // ...
+  plugins: [
+    [
+      'expo-build-properties',
+      {
+        ios: {
+          extraPods: [
+            {
+              name: 'BitmovinGoogleDAIPlayer',
+              git: 'https://github.com/bitmovin/bitmovin-player-ios-integrations-google-dai.git',
+              tag: '0.2.1',
+            },
+          ],
+        },
+      },
+    ],
+  ],
+};
+```
+
+If the application already uses `expo-build-properties`, merge this entry into its existing `ios.extraPods` array. Then regenerate the native iOS project:
+
+```sh
+yarn expo prebuild --platform ios
+```
+
+Do not add the pod directly to the generated `ios/Podfile`; Expo prebuild can recreate that file.
+
 ## Compatibility
 
 | Component                    | Requirement |
 | ---------------------------- | ----------- |
-| Bitmovin Player React Native | `>=1.22.0`  |
+| Bitmovin Player React Native | `>=1.25.0`  |
 | Expo                         | `>=54.0.0`  |
 | React Native                 | `>=0.75.0`  |
 
