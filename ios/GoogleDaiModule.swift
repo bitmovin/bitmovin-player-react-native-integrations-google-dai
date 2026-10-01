@@ -32,7 +32,11 @@ public class GoogleDaiModule: Module {
             self?.playerIdsByGoogleDaiId[googleDaiId] = playerId
         }.runOnQueue(.main)
 
-        AsyncFunction("load") { @MainActor [weak self] (googleDaiId: NativeId, sourceConfig: [String: Any]) in
+        AsyncFunction("load") { @MainActor [weak self] (
+            googleDaiId: NativeId,
+            sourceConfig: [String: Any],
+            _sourceConfigFactoryId: String?
+        ) in
             guard let playerId = self?.playerIdsByGoogleDaiId[googleDaiId],
                   let player = PlayerRegistry.getPlayer(nativeId: playerId)
             else {

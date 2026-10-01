@@ -92,7 +92,7 @@ class NativeGoogleDai implements GoogleDaiApi {
     const validatedConfig = validateSourceConfig(sourceConfig);
     await this.initializeNative();
     this.ensurePlayerInitialized();
-    await GoogleDaiModule.load(this.nativeId, validatedConfig);
+    await GoogleDaiModule.load(this.nativeId, validatedConfig, null);
   };
 
   private initializeNative(): Promise<void> {
