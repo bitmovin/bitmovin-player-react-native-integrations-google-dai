@@ -162,6 +162,8 @@ jobs:
 
       - name: Build iOS example app
         working-directory: example/ios
+        env:
+          BITMOVIN_PLAYER_LICENSE_KEY: ci-placeholder
         run: |
           xcodebuild \
             -workspace BitmovinGoogleDAIExample.xcworkspace \
