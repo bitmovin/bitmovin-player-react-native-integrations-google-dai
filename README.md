@@ -10,33 +10,20 @@ yarn add bitmovin-player-react-native @bitmovin/player-react-native-google-dai
 
 The package is an Expo module; Expo autolinking handles native installation.
 
-### iOS native dependency
+Add the `bitmovin-player-react-native` config plugin to your app configuration, or merge these options into its existing entry:
 
-The native Google DAI integration is distributed as a tagged CocoaPod outside of CocoaPods Trunk. Expo autolinking discovers this React Native module, but it cannot determine the Git source of that native dependency. Therefore, iOS applications must declare `BitmovinGoogleDAIPlayer` as an extra pod through [`expo-build-properties`](https://docs.expo.dev/versions/latest/sdk/build-properties/).
-
-Install the config plugin:
-
-```sh
-yarn expo install expo-build-properties
-```
-
-Then add the extra pod to the `plugins` section of `app.config.ts`:
+> **Player React Native `1.30.0` and newer:** Set `features.googleIMA: true`. Google DAI requires IMA, which is disabled by default in these versions. Earlier core versions include IMA by default.
 
 ```ts
 const config = {
   // ...
   plugins: [
     [
-      'expo-build-properties',
+      'bitmovin-player-react-native',
       {
-        ios: {
-          extraPods: [
-            {
-              name: 'BitmovinGoogleDAIPlayer',
-              git: 'https://github.com/bitmovin/bitmovin-player-ios-integrations-google-dai.git',
-              tag: '0.2.1',
-            },
-          ],
+        playerLicenseKey: 'YOUR_BITMOVIN_PLAYER_LICENSE_KEY',
+        features: {
+          googleIMA: true,
         },
       },
     ],
@@ -44,19 +31,17 @@ const config = {
 };
 ```
 
-If the application already uses `expo-build-properties`, merge this entry into its existing `ios.extraPods` array. Then regenerate the native iOS project:
+### iOS native dependency
 
-```sh
-yarn expo prebuild --platform ios
-```
+Native Google DAI is installed through Swift Package Manager (SPM), sharing the Player and IMA dependencies with the core React Native wrapper. CocoaPods still installs the React Native bridges and Expo modules.
 
-Do not add the pod directly to the generated `ios/Podfile`; Expo prebuild can recreate that file.
+The core config plugin links the Player and IMA frameworks to the app target. For apps maintained without Expo prebuild, follow the core wrapper's [iOS dependency guide](https://github.com/bitmovin/bitmovin-player-react-native/blob/development/docs/ios-dependencies.md) to configure these dependencies.
 
 ## Compatibility
 
 | Component                    | Requirement |
 | ---------------------------- | ----------- |
-| Bitmovin Player React Native | `>=1.25.0`  |
+| Bitmovin Player React Native | `>=1.27.1`  |
 | Expo                         | `>=54.0.0`  |
 | React Native                 | `>=0.75.0`  |
 
@@ -178,6 +163,24 @@ yarn android
 # or
 yarn ios
 ```
+
+## Migrating to 0.4.0 - iOS only
+
+Version `0.4.0` of this integration moves native Google DAI to Swift Package Manager (SPM) to share Player and IMA dependencies with the core React Native wrapper. It requires Player React Native `1.27.1` or newer, which includes the archive signature fix.
+
+To migrate an existing CocoaPods-based DAI integration:
+
+1. Update this integration to `0.4.0` and ensure Player React Native is `1.27.1` or newer.
+1. Remove `BitmovinGoogleDAIPlayer` from `ios.extraPods` in `expo-build-properties`, or from your Podfile if it was declared there directly.
+1. Configure the core plugin as shown under [Installation](#installation). With Player React Native `1.30.0` or newer, enable `features.googleIMA`.
+1. Regenerate the native iOS project and install pods:
+
+```sh
+yarn expo prebuild --platform ios --no-install
+(cd ios && pod install)
+```
+
+Then rebuild the app using your usual Expo or React Native workflow.
 
 ## Contributing and license
 
