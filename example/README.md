@@ -2,6 +2,8 @@
 
 Small Expo dev-client app for validating `@bitmovin/player-react-native-google-dai` with `bitmovin-player-react-native`.
 
+The example uses Expo SDK 58 and React Native 0.88.1 for Xcode 27 support. It requires iOS 16.4 or newer. The published integration's minimum versions remain unchanged.
+
 ## Setup
 
 ```sh
@@ -19,6 +21,10 @@ yarn android
 # or
 yarn ios
 ```
+
+After upgrading from an older checkout, regenerate the native project with `yarn prebuild --platform ios` and rebuild the development client. Expo 58 generates the scene lifecycle required by iOS 27.
+
+Android builds with Expo 58 are currently blocked because the integration and core player reference the removed `ExpoModulesCorePlugin.gradle` script.
 
 The sample uses Google's public live DAI HLS test stream:
 
