@@ -29,8 +29,14 @@ Pod::Spec.new do |s|
     raise 'RNBitmovinPlayerGoogleDai requires React Native with spm_dependency support (>= 0.75).'
   end
 
+  core_package_path = Pod::Executable.execute_command(
+    'node',
+    ['--print', 'require.resolve("bitmovin-player-react-native/package.json", { paths: [process.argv[1]] })', __dir__]
+  ).strip
+  core_version = Gem::Version.new(JSON.parse(File.read(core_package_path)).fetch('version'))
   # Core versions before 1.30 always include IMA and do not write this property.
-  if podfile_properties.key?('BITMOVIN_ENABLE_GOOGLE_IMA') && podfile_properties['BITMOVIN_ENABLE_GOOGLE_IMA'].to_s.strip.downcase != 'true'
+  ima_opt_in_required = core_version >= Gem::Version.new('1.30.0') || podfile_properties.key?('BITMOVIN_ENABLE_GOOGLE_IMA')
+  if ima_opt_in_required && podfile_properties['BITMOVIN_ENABLE_GOOGLE_IMA'].to_s.strip.downcase != 'true'
     raise 'Google DAI requires Google IMA. Set features.googleIMA to true in the Bitmovin Expo plugin, or BITMOVIN_ENABLE_GOOGLE_IMA to true in Podfile.properties.json, and reinstall pods.'
   end
 
