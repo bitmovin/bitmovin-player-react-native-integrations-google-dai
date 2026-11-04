@@ -37,11 +37,11 @@ const config: ExpoConfig = {
       {
         android: {
           minSdkVersion: 24,
-          compileSdkVersion: 36,
+          compileSdkVersion: 37,
           targetSdkVersion: 35,
         },
         ios: {
-          deploymentTarget: '15.1',
+          deploymentTarget: '16.4',
           extraPods: [
             {
               name: 'BitmovinGoogleDAIPlayer',
