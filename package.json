@@ -44,6 +44,7 @@
     "android/src",
     "build",
     "expo-module.config.json",
+    "ios/dependencies.json",
     "ios/GoogleDaiModule.swift",
     "ios/RNBitmovinPlayerGoogleDai.podspec",
     "src",
@@ -54,7 +55,7 @@
     "expo-modules-core": "~3.0.30"
   },
   "peerDependencies": {
-    "bitmovin-player-react-native": ">=1.25.0",
+    "bitmovin-player-react-native": ">=1.27.1",
     "expo": ">=54.0.0",
     "expo-crypto": ">=14.0.0",
     "react": "*",
