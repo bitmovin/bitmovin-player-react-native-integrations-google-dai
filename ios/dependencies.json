@@ -1,0 +1,7 @@
+{
+  "BitmovinGoogleDAIPlayer": {
+    "url": "https://github.com/bitmovin/bitmovin-player-ios-integrations-google-dai.git",
+    "version": "0.2.1",
+    "product": "BitmovinGoogleDAIPlayer"
+  }
+}

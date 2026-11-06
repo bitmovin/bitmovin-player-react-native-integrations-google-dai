@@ -2377,10 +2377,10 @@ big-integer@1.6.x:
   resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.52.tgz#60a887f3047614a8e1bffe5d7173490a97dc8c85"
   integrity sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==
 
-bitmovin-player-react-native@^1.25.0:
-  version "1.25.0"
-  resolved "https://registry.yarnpkg.com/bitmovin-player-react-native/-/bitmovin-player-react-native-1.25.0.tgz#fbbd91538960dc0327427b4df634befb8648ce10"
-  integrity sha512-VfcmAwcwy69sMmB/uTa/wAM+OvsqrkdMjzmvxHNA+stELNutWPUnz1+l7TPhVf/Cu6nU0QeCqnuWE3fsEz9lZw==
+bitmovin-player-react-native@^1.27.1:
+  version "1.27.1"
+  resolved "https://registry.npmjs.org/bitmovin-player-react-native/-/bitmovin-player-react-native-1.27.1.tgz#90ebe340041be4dbe55381fa79672eb98baf34e8"
+  integrity sha512-weANttnHdA1Y3cAVb4GIhF+qCrdloveZZxeV7GT3JeinGYAg1AbkGBA9E6MD3gdqm2ZjrvJdXeVaWi/AVz045A==
   dependencies:
     expo-crypto "~15.0.9"
     expo-keep-awake "~15.0.8"
