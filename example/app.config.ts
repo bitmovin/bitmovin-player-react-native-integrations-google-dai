@@ -42,13 +42,6 @@ const config: ExpoConfig = {
         },
         ios: {
           deploymentTarget: '16.4',
-          extraPods: [
-            {
-              name: 'BitmovinGoogleDAIPlayer',
-              git: 'https://github.com/bitmovin/bitmovin-player-ios-integrations-google-dai.git',
-              tag: '0.2.1',
-            },
-          ],
         },
       },
     ],
