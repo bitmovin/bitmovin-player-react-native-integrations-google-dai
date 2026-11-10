@@ -42,6 +42,9 @@ const config: ExpoConfig = {
         },
         ios: {
           deploymentTarget: '16.4',
+          // With Expo 58, this integration cannot find the core React Native player's generated files.
+          // Packaging iOS dependencies as frameworks keeps those paths consistent.
+          useFrameworks: 'static',
         },
       },
     ],
