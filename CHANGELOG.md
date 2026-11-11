@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.4.0]
+
 ### Added
 
 - iOS: Add support for Bitmovin Player React Native `1.27.1` and newer by migrating native Google DAI to Swift Package Manager. When upgrading an existing Google DAI integration to this release, follow the [migration guide](README.md#migrating-to-040---ios-only).
